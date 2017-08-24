@@ -1,0 +1,4 @@
+pyaudio>=0.2.11
+soundfile>=0.9.0.post1
+git+git://hyperair/WebSocket-for-Python/fix-frame-spillover@master#egg=ws4py
+
