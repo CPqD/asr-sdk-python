@@ -115,7 +115,7 @@ def parse_response(msg):
 
 
 class ASRClient(WebSocketClient):
-    def __init__(self, url, cv_start_recog, cv_send_audio, cv_wait_recog,
+    def __init__(self, url, cv_start_recog, cv_send_audio, cv_wait_recog, cv_wait_cancel,
                  listener=RecognitionListener(),
                  user_agent=None,
                  config=None,
@@ -134,6 +134,7 @@ class ASRClient(WebSocketClient):
                                         headers)
         assert isinstance(cv_send_audio, Condition)
         assert isinstance(cv_wait_recog, Condition)
+        assert isinstance(cv_wait_cancel, Condition)
         self._user_agent = user_agent
         self._listener = listener
         self._config = config
@@ -142,6 +143,7 @@ class ASRClient(WebSocketClient):
         self._cv_start_recog = cv_start_recog
         self._cv_send_audio = cv_send_audio
         self._cv_wait_recog = cv_wait_recog
+        self._cv_wait_cancel = cv_wait_cancel
         self._cv_opened = Condition()
         self.recognition_list = []
         self.daemon = False
@@ -176,6 +178,7 @@ class ASRClient(WebSocketClient):
         self.send(msg, binary=True)
         self._logger.debug(b"SEND: " + msg)
 
+    @property
     def status(self):
         return self._status
 
@@ -265,8 +268,8 @@ class ASRClient(WebSocketClient):
 
             # Default response case which is ignored
             elif h['Method'] == "CANCEL_RECOGNITION":
-                with self._cv_wait_recog:
-                    self._cv_wait_recog.notify_all()
+                with self._cv_wait_cancel:
+                    self._cv_wait_cancel.notify_all()
                     self._status = "IDLE"
             else:
                 self._logger.info("Ignored {} response".format(h['Method']))

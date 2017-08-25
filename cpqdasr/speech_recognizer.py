@@ -26,7 +26,7 @@ import copy
 
 from .listener import RecognitionListener
 from .logger import Logger
-from .websocket_api import ASRClient, start_recog_msg, send_audio_msg
+from .websocket_api import ASRClient, start_recog_msg, send_audio_msg, cancel_recog_msg
 
 
 class RecognitionException(Exception):
@@ -75,6 +75,7 @@ class SpeechRecognizer:
         self._cv_start_recog = Condition()
         self._cv_send_audio = Condition()
         self._cv_wait_recog = Condition()
+        self._cv_wait_cancel = Condition()
         self._ws = None
         self._sendAudioThread = None
         self._is_recognizing = False
@@ -100,6 +101,7 @@ class SpeechRecognizer:
                                  cv_start_recog=self._cv_start_recog,
                                  cv_send_audio=self._cv_send_audio,
                                  cv_wait_recog=self._cv_wait_recog,
+                                 cv_wait_cancel=self._cv_wait_cancel,
                                  listener=self._listener,
                                  user_agent=self._userAgent,
                                  config=self._sessionConfig,
@@ -111,13 +113,13 @@ class SpeechRecognizer:
         with self._cv_send_audio:
             self._logger.debug("Waiting for send audio notify")
             self._cv_send_audio.wait(self._maxWaitSeconds)
-            if self._ws.status() != "LISTENING":
+            if self._ws.status != "LISTENING":
                 self._logger.warning("Send audio timeout after {} "
                                      "seconds".format(self._maxWaitSeconds))
                 return
             bytestr = next(self._audioSource)
             for x in self._audioSource:
-                if (self._ws.status() != "LISTENING"):
+                if self._ws.status != "LISTENING":
                     bytestr = x
                     break
                 if self._joinThread:
@@ -151,10 +153,10 @@ class SpeechRecognizer:
             return []
         with self._cv_wait_recog:
             self._cv_wait_recog.wait(self._maxWaitSeconds)
-            if self._ws.status() == "ABORTED":
+            if self._ws.status == "ABORTED":
                 self._ws.recognition_list = []
                 return []
-            elif self._ws.status() != "RECOGNIZED":
+            elif self._ws.status != "RECOGNIZED":
                 msg = "Wait recognition timeout after " \
                       "{} seconds".format(self._maxWaitSeconds)
                 self._logger.warning(msg)
@@ -185,7 +187,7 @@ class SpeechRecognizer:
         if not self._ws.isConnected():
             with self._cv_start_recog:
                 self._cv_start_recog.wait(self._maxWaitSeconds)
-        if self._ws.status() != "IDLE":
+        if self._ws.status != "IDLE":
             self._logger.warning("Recognize timeout after {} "
                                  "seconds".format(self._maxWaitSeconds))
             return
@@ -201,7 +203,7 @@ class SpeechRecognizer:
         self._joinThread = True
         self._sendAudioThread.join(self._maxWaitSeconds)
         self._joinThread = False
-        if(self._sendAudioThread.isAlive()):
+        if self._sendAudioThread.isAlive():
             self._logger.warning("Send audio thread join timeout after "
                                  "{} seconds".format(self._maxWaitSeconds))
         self._sendAudioThread = None
@@ -209,6 +211,12 @@ class SpeechRecognizer:
 
     def cancelRecognition(self):
         if self._sendAudioThread is not None:
+            if not self._ws.terminated:
+                self._ws.send(cancel_recog_msg(), binary=True)
+                with self._cv_wait_recog:
+                    self._cv_wait_recog.wait(self._maxWaitSeconds)
+                if self._ws.status != "IDLE":
+                    self._logger.warning("Timeout on waiting Cancel Recognition")
             self._finishRecognition()
             self._ws.recognition_list = []  # Clear result after cancelling
         else:
