@@ -84,6 +84,10 @@ def release_session_msg():
     return "{} RELEASE_SESSION".format(VERSION).encode()
 
 
+def cancel_recog_msg():
+    return "{} CANCEL_RECOGNITION".format(VERSION).encode()
+
+
 def parse_response(msg):
     """
     Parses CPQD ASR messages and returns a string corresponding to the
@@ -260,8 +264,12 @@ class ASRClient(WebSocketClient):
                 self._abort()
 
             # Default response case which is ignored
+            elif h['Method'] == "CANCEL_RECOGNITION":
+                with self._cv_wait_recog:
+                    self._cv_wait_recog.notify_all()
+                    self._status = "IDLE"
             else:
-                self._logger.debug("Ignored response")
+                self._logger.info("Ignored {} response".format(h['Method']))
             return
 
         if call == "RECOGNITION_RESULT":

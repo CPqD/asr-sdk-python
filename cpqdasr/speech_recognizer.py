@@ -175,7 +175,7 @@ class SpeechRecognizer:
                 return ret
 
     def recognize(self, audio_source, lm_list, config=None):
-        if self._connectOnRecognize:
+        if self._ws is None:
             self._connect()
         if self._is_recognizing:
             msg = "Last recognition is still pending."
