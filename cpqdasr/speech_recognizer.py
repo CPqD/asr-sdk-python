@@ -181,7 +181,7 @@ class SpeechRecognizer:
             self._connect()
         if self._is_recognizing:
             msg = "Last recognition is still pending."
-            self._logger.warning(msg)
+            self._logger.error(msg)
             raise RecognitionException("FAILURE", msg)
         self._is_recognizing = True
         if not self._ws.isConnected():

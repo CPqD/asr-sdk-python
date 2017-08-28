@@ -50,6 +50,7 @@ class Logger():
                                 self._alias,
                                 log_level,
                                 s))
+            self._ostream.flush()
 
     def error(self, s):
         if self._log_level >= 0:
