@@ -288,19 +288,22 @@ class ASRClient(WebSocketClient):
                     result = b['alternatives']
                 else:
                     result = []
-                # TODO: change for last_result verification (TCA)
+                if 'last_segment' in b:
+                    last_segment = b['last_segment']
+                else:
+                    last_segment = True
                 self.recognition_list.append(
                     RecognitionResult(
                         resultCode=h["Result-Status"],
                         speechSegmentIndex=0,
-                        lastSpeechSegment=True,
+                        lastSpeechSegment=last_segment,
                         sentenceStartTimeMilliseconds=0,
                         sentenceEndTimeMilliseconds=0,
                         alternatives=result
                     )
                 )
                 self._listener.onRecognitionResult(b)
-                if True:
+                if last_segment:
                     with self._cv_wait_recog:
                         self._status = "RECOGNIZED"
                         self._cv_wait_recog.notify_all()

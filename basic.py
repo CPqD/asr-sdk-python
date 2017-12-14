@@ -50,11 +50,13 @@ if __name__ == "__main__":
 
     asr = SpeechRecognizer(url, credentials=credentials,
                            logStream=ostream,
-                           logLevel="info")
+                           logLevel="info",
+                           maxWaitSeconds=600)
     asr.recognize(FileAudioSource(apath), [lm])
     res = asr.waitRecognitionResult()
     if res:
-        print(res[0].alternatives)
+        for k in res:
+            print(k.alternatives)
     else:
         print("Empty result! Check log.txt for more info.")
     asr.close()
