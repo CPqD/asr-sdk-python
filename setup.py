@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 install_requires = [
-  'ws4py==0.4.3.dev0',
+  'ws4py==0.3.4',
   'soundfile>=0.9.0.post1',
   'pyaudio>=0.2.11',
 ]
