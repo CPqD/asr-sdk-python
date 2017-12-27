@@ -22,7 +22,6 @@ import json
 from sys import stderr
 from threading import Condition
 from ws4py.client.threadedclient import WebSocketClient
-from ws4py.websocket import WebSocket
 
 from .result import PartialRecognitionResult, RecognitionResult
 from .listener import RecognitionListener
@@ -47,12 +46,24 @@ def set_parameters_msg(parameters):
     return msg
 
 
-def start_recog_msg(lang_list):
+def define_grammar_msg(grammar_id, grammar_body):
+    msg = "{} DEFINE_GRAMMAR\n".format(VERSION)
+    msg += "Content-Type: application/srgs\n"
+    msg += "Content-ID: {}\n".format(grammar_id)
+    msg += "Content-Length: {}\n\n"
+    # TODO: Check why we need to sum 2
+    payload = grammar_body.encode()
+    msg = msg.format(len(payload)).encode()
+    msg += grammar_body
+    return msg
+
+
+def start_recog_msg(uri_list):
     msg = "{} START_RECOGNITION\n".format(VERSION)
     msg += "Accept: application/json\n"
     msg += "Content-Type: text/uri-list\n"
     msg += "Content-Length: {}\n\n"
-    langs = ','.join(lang_list)
+    langs = '\n'.join(uri_list)
     msg = msg.format(len(langs)).encode()
     msg += langs.encode()
     return msg
@@ -115,7 +126,9 @@ def parse_response(msg):
 
 
 class ASRClient(WebSocketClient):
-    def __init__(self, url, cv_start_recog, cv_send_audio, cv_wait_recog, cv_wait_cancel,
+    def __init__(self, url,
+                 cv_define_grammar, cv_start_recog, cv_send_audio,
+                 cv_wait_recog, cv_wait_cancel,
                  listener=RecognitionListener(),
                  user_agent=None,
                  config=None,
@@ -132,6 +145,8 @@ class ASRClient(WebSocketClient):
                                         heartbeat_freq,
                                         ssl_options,
                                         headers)
+        assert isinstance(cv_define_grammar, Condition)
+        assert isinstance(cv_start_recog, Condition)
         assert isinstance(cv_send_audio, Condition)
         assert isinstance(cv_wait_recog, Condition)
         assert isinstance(cv_wait_cancel, Condition)
@@ -140,6 +155,7 @@ class ASRClient(WebSocketClient):
         self._config = config
         self._logger = logger
         self._status = "DISCONNECTED"
+        self._cv_define_grammar = cv_define_grammar
         self._cv_start_recog = cv_start_recog
         self._cv_send_audio = cv_send_audio
         self._cv_wait_recog = cv_wait_recog
@@ -163,6 +179,9 @@ class ASRClient(WebSocketClient):
     def _abort(self):
         self._status = "ABORTED"
         self._logger.debug("Aborting")
+        with self._cv_define_grammar:
+            self._logger.debug("Aborting define grammar")
+            self._cv_define_grammar.notify_all()
         with self._cv_start_recog:
             self._logger.debug("Aborting start recog")
             self._cv_start_recog.notify_all()
@@ -195,10 +214,6 @@ class ASRClient(WebSocketClient):
         self._logger.info("ASR WS closed down {}, {}".format(code, reason))
         self._abort()
 
-#    def process(self, x):
-#        print("process")
-#        WebSocket.process(self, x)
-
     def received_message(self, msg):
         # Parsing and returning error if bad response
         self._logger.debug(msg.data)
@@ -216,13 +231,22 @@ class ASRClient(WebSocketClient):
                 self.close()
                 self._status = "DISCONNECTED"
                 return
+            if h["Method"] == "DEFINE_GRAMMAR":
+                if h["Result"] == "SUCCESS":
+                    self._logger.debug("Grammar defined")
+                    with self._cv_define_grammar:
+                        self._cv_define_grammar.notify_all()
+                else:
+                    self._logger.warning("Error on defining grammar: "
+                                         "{}".format(msg.data))
+                    self._abort()
+                return
             if h["Method"] == "START_RECOGNITION":
                 if h["Result"] == "SUCCESS":
                     self._logger.debug("Starting recognition")
                     self._status = "LISTENING"
-                    self._cv_send_audio.acquire()
-                    self._cv_send_audio.notify_all()
-                    self._cv_send_audio.release()
+                    with self._cv_send_audio:
+                        self._cv_send_audio.notify_all()
                 else:
                     self._logger.warning("Error on start recognition: "
                                          "{}".format(msg.data))
@@ -266,11 +290,12 @@ class ASRClient(WebSocketClient):
                                      "{}".format(h["Error-Code"]))
                 self._abort()
 
-            # Default response case which is ignored
             elif h['Method'] == "CANCEL_RECOGNITION":
                 with self._cv_wait_cancel:
                     self._cv_wait_cancel.notify_all()
                     self._status = "IDLE"
+
+            # Default response case which is ignored
             else:
                 self._logger.info("Ignored {} response".format(h['Method']))
             return

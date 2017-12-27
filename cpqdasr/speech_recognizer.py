@@ -20,13 +20,15 @@ Main Speech Recognizer class:
     http://speech-doc.cpqd.com.br/asr/get_started/sdks.html
 """
 from sys import stderr
-from threading import Condition, Thread, Lock
+from threading import Condition, Thread
 from base64 import b64encode
 import copy
 
 from .listener import RecognitionListener
 from .logger import Logger
-from .websocket_api import ASRClient, start_recog_msg, send_audio_msg, cancel_recog_msg
+from .websocket_api import ASRClient, start_recog_msg, define_grammar_msg
+from .websocket_api import send_audio_msg, cancel_recog_msg
+from .language_model_list import LanguageModelList
 
 
 class RecognitionException(Exception):
@@ -72,6 +74,7 @@ class SpeechRecognizer:
         self._connectOnRecognize = connectOnRecognize
         self._autoClose = autoClose
         self._logger = Logger(logStream, alias, logLevel)
+        self._cv_define_grammar = Condition()
         self._cv_start_recog = Condition()
         self._cv_send_audio = Condition()
         self._cv_wait_recog = Condition()
@@ -98,6 +101,7 @@ class SpeechRecognizer:
             credentials = b"Basic " + credentials
             headers = [("Authorization", credentials.decode())]
             self._ws = ASRClient(url=self._serverUrl,
+                                 cv_define_grammar=self._cv_define_grammar,
                                  cv_start_recog=self._cv_start_recog,
                                  cv_send_audio=self._cv_send_audio,
                                  cv_wait_recog=self._cv_wait_recog,
@@ -177,6 +181,7 @@ class SpeechRecognizer:
                 return ret
 
     def recognize(self, audio_source, lm_list, config=None):
+        assert(isinstance(lm_list, LanguageModelList))
         if self._ws is None:
             self._connect()
         if self._is_recognizing:
@@ -193,7 +198,18 @@ class SpeechRecognizer:
             return
         self._recogConfig = config
         self._audioSource = audio_source
-        msg = start_recog_msg(lm_list)
+        lm_uris = []
+        for lm in lm_list._lm_list:
+            if type(lm) == str:
+                lm_uris.append(lm)
+            elif type(lm) == tuple:
+                msg = define_grammar_msg(*lm)
+                self._ws.send(msg, binary=True)
+                self._logger.debug(b"SEND: " + msg)
+                with self._cv_define_grammar:
+                    self._cv_define_grammar.wait(self._maxWaitSeconds)
+                lm_uris.append('session:' + lm[0])
+        msg = start_recog_msg(lm_uris)
         self._ws.send(msg, binary=True)
         self._logger.debug(b"SEND: " + msg)
         self._sendAudioThread = Thread(target=self._send_audio_loop)
@@ -213,10 +229,10 @@ class SpeechRecognizer:
         if self._sendAudioThread is not None:
             if not self._ws.terminated:
                 self._ws.send(cancel_recog_msg(), binary=True)
-                with self._cv_wait_recog:
-                    self._cv_wait_recog.wait(self._maxWaitSeconds)
-                if self._ws.status != "IDLE":
-                    self._logger.warning("Timeout on waiting Cancel Recognition")
+#                with self._cv_wait_recog:
+#                    self._cv_wait_recog.wait(self._maxWaitSeconds)
+#                if self._ws.status != "IDLE":
+#                    self._logger.warning("Timeout on waiting Cancel Recognition")
             self._finishRecognition()
             self._ws.recognition_list = []  # Clear result after cancelling
         else:

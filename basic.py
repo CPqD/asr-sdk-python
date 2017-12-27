@@ -19,19 +19,22 @@
 
 Basic example with an audio file input.
 """
-from cpqdasr import SpeechRecognizer
+from cpqdasr import SpeechRecognizer, LanguageModelList
 from cpqdasr.audio_source import FileAudioSource
 from sys import argv
+import os
 
 
 def usage():
-    print("Usage: {} <ws_url> <lang_uri> <wav_path> [ <user> <password> ]"
+    print("Usage: {} <ws_url> <lang_uri_or_path> <wav_path> [ <user> <password> ]"
           .format(argv[0]))
     print("   eg: {} ws://127.0.0.1:8025/asr-server/asr "
           "builtin:grammar/samples/phone /path/to/audio.wav".format(argv[0]))
     print("  eg2: {} wss://contact/cpqd/and/request/a/key/ "
           "builtin:slm/general /path/to/audio.wav "
           "myusername mypassword".format(argv[0]))
+    print("  eg3: {} ws://127.0.0.1:8025/asr-server/asr "
+          "/path/to/my/grammar /path/to/audio.wav".format(argv[0]))
     exit()
 
 
@@ -42,7 +45,16 @@ if __name__ == "__main__":
         usage()
 
     url = argv[1]
-    lm = argv[2]
+    if os.path.isfile(argv[2]):
+        lm = LanguageModelList(
+                LanguageModelList.grammarFromPath(
+                        'asdasdas', argv[2]
+                )
+             )
+    else:
+        lm = LanguageModelList(
+                 LanguageModelList.fromURI(argv[2])
+             )
     apath = argv[3]
     credentials = ("", "")
     if(argc == 6):
@@ -50,9 +62,9 @@ if __name__ == "__main__":
 
     asr = SpeechRecognizer(url, credentials=credentials,
                            logStream=ostream,
-                           logLevel="info",
+                           logLevel="debug",
                            maxWaitSeconds=600)
-    asr.recognize(FileAudioSource(apath), [lm])
+    asr.recognize(FileAudioSource(apath), lm)
     res = asr.waitRecognitionResult()
     if res:
         for k in res:
