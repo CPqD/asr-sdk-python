@@ -101,7 +101,7 @@ def cancel_recog_msg():
 
 def parse_response(msg):
     """
-    Parses CPQD ASR messages and returns a string corresponding to the
+    Parses CPqD ASR messages and returns a string corresponding to the
     response type and two dicts, the first one corresponding to the
     header, and the second one to the JSON body.
     """
@@ -253,7 +253,10 @@ class ASRClient(WebSocketClient):
                     self._abort()
                 return
 
-        session_status = h["Session-Status"]
+        if "Session-Status" in h:
+            session_status = h["Session-Status"]
+        else:
+            session_status = h["Result"]
 
         # Treats the expected message when first "CREATE_SESSION" is sent
         if self._status == "DISCONNECTED":
