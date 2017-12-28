@@ -19,17 +19,52 @@
 
 Example with microphone input
 """
-from cpqdasr.speech_recognizer import SpeechRecognizer
+from cpqdasr.speech_recognizer import SpeechRecognizer, LanguageModelList
 from cpqdasr.speech_recognizer import RecognitionException
 from cpqdasr.audio_source import SimpleMicrophoneSource
 from cpqdasr.listener import RecognitionListener
 
 from sys import argv
+from sys import stdout, stderr
+import time
+import os
 
+class PrinterListener(RecognitionListener):
 
-class PartialListener(RecognitionListener):
-    def onPartialRecognition(self, partial):
-        print(partial.text, end='\r')
+    def __init__(self, max_char=80):
+        self.max_char = 80
+        self.last_final = 0
+        self.print_str = ""
+
+#    def onPartialRecognition(self, partial):
+#        pass
+#        if self.print_str:
+#            self.print_str += ' '
+#        self.print_str += partial.text
+#        self.print_str = self.print_str[:self.max_char]
+#        print(self.print_str, end='\r')
+#        stdout.flush()
+
+    def onRecognitionResult(self, result):
+        self.print_str = self.print_str[:self.last_final]
+        if 'alternatives' in result and result['alternatives']:
+            alt = result['alternatives'][0]
+            if 'text' in alt:
+                if self.print_str:
+                    self.print_str += ' '
+                self.print_str += alt['text']
+                if len(self.print_str) > self.max_char:
+                    i = self.max_char
+                    while(self.print_str[i] != ' '):
+                        i -= 1
+                    clear_spaces = " " * (self.max_char - i)
+                    print(self.print_str[:i] + clear_spaces, end='\n')
+                    self.print_str = self.print_str[i:]
+                    if self.print_str[0] == ' ':
+                        self.print_str = self.print_str[1:]
+                print(self.print_str, end='\r')
+                self.last_final = len(self.print_str)
+                stdout.flush()
 
 
 def usage():
@@ -49,31 +84,38 @@ if __name__ == "__main__":
         usage()
 
     url = argv[1]
-    lm = argv[2]
+    if os.path.isfile(argv[2]):
+        lm = LanguageModelList(
+                LanguageModelList.grammarFromPath(
+                        os.path.basename(argv[2]), argv[2]
+                )
+             )
+    else:
+        lm = LanguageModelList(
+                 LanguageModelList.fromURI(argv[2])
+             )
     credentials = ("", "")
     if(argc == 5):
         credentials = (argv[3], argv[4])
 
     asr = SpeechRecognizer(url, credentials=credentials,
                            logStream=ostream,
-                           listener=PartialListener(),
+                           listener=PrinterListener(),
                            logLevel="warning")
 
     with SimpleMicrophoneSource() as mic:
         try:
-            while(True):
-                asr.recognize(mic, [lm])
-                result = asr.waitRecognitionResult()
-                if result:
-                    if result[0].resultCode == "RECOGNIZED":
-                        print(result[0].alternatives[0]['text'])
-                    else:
-                        print(result[0].resultCode)
+            asr.recognize(mic, lm)
+            result = asr.waitRecognitionResult()
+            if result:
+                if result[0].resultCode == "RECOGNIZED":
+                    print(result[0].alternatives[0]['text'])
+                else:
+                    print(result[0].resultCode)
         except KeyboardInterrupt:
-            print("Caught interrupt. Closing ASR instance...")
+            print("Caught interrupt. Closing ASR instance...", file=stderr)
             try:
                 asr.cancelRecognition()
             except RecognitionException:
                 pass  # Ignores exceptions on canceling
-            asr.close()
-            pass
+    asr.close()
