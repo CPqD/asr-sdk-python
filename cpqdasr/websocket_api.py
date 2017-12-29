@@ -51,10 +51,9 @@ def define_grammar_msg(grammar_id, grammar_body):
     msg += "Content-Type: application/srgs\n"
     msg += "Content-ID: {}\n".format(grammar_id)
     msg += "Content-Length: {}\n\n"
-    # TODO: Check why we need to sum 2
     payload = grammar_body.encode()
     msg = msg.format(len(payload)).encode()
-    msg += grammar_body
+    msg += payload
     return msg
 
 
