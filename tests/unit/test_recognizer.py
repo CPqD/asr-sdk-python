@@ -21,8 +21,8 @@ Tests with grammars
 from cpqdasr.speech_recognizer import RecognitionException
 from cpqdasr.speech_recognizer import SpeechRecognizer, LanguageModelList
 from cpqdasr.audio_source import FileAudioSource
-from .config import url, credentials, phone_wav, silence_wav
-from .config import log_level, log_path, phone_grammar
+from .config import url, credentials, phone_wav, silence_wav, yes_wav
+from .config import log_level, log_path, phone_grammar_uri, yes_grammar_path
 import soundfile as sf
 import time
 
@@ -32,7 +32,7 @@ import time
 # =============================================================================
 asr_kwargs = {'credentials': credentials,
               'logLevel': log_level,
-              'logStream': open(log_path, 'w')}
+              'logStream': open(log_path, 'a')}
 
 
 def DelayedFileAudioSource(path, blocksize=512):
@@ -56,7 +56,26 @@ def DelayedFileAudioSource(path, blocksize=512):
 def testBasicGrammar():
     asr = SpeechRecognizer(url, **asr_kwargs)
     asr.recognize(FileAudioSource(phone_wav),
-                  LanguageModelList(phone_grammar))
+                  LanguageModelList(phone_grammar_uri))
+    result = asr.waitRecognitionResult()
+    asr.close()
+    alt = None
+    for res in result:
+        if len(res.alternatives) > 0:
+            alt = res.alternatives[0]
+            break
+    assert(alt is not None)
+    assert(len(alt['text']) > 0)
+    assert(len(alt['interpretations']) > 0)
+    assert(int(alt['score']) > 90)
+
+
+def testInlineGrammar():
+    with open(yes_grammar_path) as f:
+        body = f.read()
+    asr = SpeechRecognizer(url, **asr_kwargs)
+    asr.recognize(FileAudioSource(yes_wav),
+                  LanguageModelList(("yes_no", body)))
     result = asr.waitRecognitionResult()
     asr.close()
     alt = None
@@ -78,16 +97,16 @@ def testNoInputTimeout():
              }
     asr = SpeechRecognizer(url, recogConfig=config, **asr_kwargs)
     asr.recognize(DelayedFileAudioSource(silence_wav),
-                  LanguageModelList(phone_grammar))
+                  LanguageModelList(phone_grammar_uri))
     result = asr.waitRecognitionResult()
     asr.close()
-    assert(result[0].resultCode == "NO_INPUT_TIMEOUT")
+    assert(result[0].resultCode in ("NO_INPUT_TIMEOUT", "NO_MATCH"))
 
 
 def testRecognizeBufferAudioSource():
     asr = SpeechRecognizer(url, **asr_kwargs)
     asr.recognize(DelayedFileAudioSource(phone_wav),
-                  LanguageModelList(phone_grammar))
+                  LanguageModelList(phone_grammar_uri))
     result = asr.waitRecognitionResult()[0].alternatives[0]
     asr.close()
     assert(len(result['text']) > 0)
@@ -104,7 +123,7 @@ def testRecognizeBufferBlockRead():
 def testMaxWaitSecondsThreadResponse():
     asr = SpeechRecognizer(url, maxWaitSeconds=2, **asr_kwargs)
     asr.recognize(DelayedFileAudioSource(phone_wav),
-                  LanguageModelList(phone_grammar))
+                  LanguageModelList(phone_grammar_uri))
     try:
         asr.waitRecognitionResult()
         asr.close()
@@ -119,7 +138,7 @@ def testMaxWaitSecondsThreadResponse():
 def testCloseOnRecognize():
     asr = SpeechRecognizer(url, **asr_kwargs)
     asr.recognize(DelayedFileAudioSource(phone_wav),
-                  LanguageModelList(phone_grammar))
+                  LanguageModelList(phone_grammar_uri))
     time.sleep(2)
     asr.close()
     result = asr.waitRecognitionResult()
@@ -134,7 +153,7 @@ def testCloseWithoutRecognize():
 def testCancelOnRecognize():
     asr = SpeechRecognizer(url, **asr_kwargs)
     asr.recognize(DelayedFileAudioSource(phone_wav),
-                  LanguageModelList(phone_grammar))
+                  LanguageModelList(phone_grammar_uri))
     time.sleep(2)
     asr.cancelRecognition()
     result = asr.waitRecognitionResult()
@@ -160,7 +179,7 @@ def testWaitRecognitionResultNoRecognizer():
 def testWaitRecognitionResultDuplicate():
     asr = SpeechRecognizer(url, **asr_kwargs)
     asr.recognize(FileAudioSource(phone_wav),
-                  LanguageModelList(phone_grammar))
+                  LanguageModelList(phone_grammar_uri))
     result = asr.waitRecognitionResult()[0].alternatives[0]
     result_empty = asr.waitRecognitionResult()
     asr.close()
@@ -173,11 +192,11 @@ def testWaitRecognitionResultDuplicate():
 def testDuplicateRecognize():
     asr = SpeechRecognizer(url, **asr_kwargs)
     asr.recognize(DelayedFileAudioSource(phone_wav),
-                  LanguageModelList(phone_grammar))
+                  LanguageModelList(phone_grammar_uri))
     time.sleep(2)
     try:
         asr.recognize(DelayedFileAudioSource(phone_wav),
-                      LanguageModelList(phone_grammar))
+                      LanguageModelList(phone_grammar_uri))
     except RecognitionException as e:
         assert(e.code == "FAILURE")
     else:
@@ -194,7 +213,7 @@ def testMultipleRecognize():
     results = []
     for i in range(3):
         asr.recognize(DelayedFileAudioSource(phone_wav),
-                      LanguageModelList(phone_grammar))
+                      LanguageModelList(phone_grammar_uri))
         results.append(asr.waitRecognitionResult()[0].alternatives[0])
     asr.close()
     for result in results:
