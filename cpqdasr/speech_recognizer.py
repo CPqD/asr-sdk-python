@@ -22,6 +22,7 @@ Main Speech Recognizer class:
 from sys import stderr
 from threading import Condition, Thread
 from base64 import b64encode
+from time import time
 import copy
 
 from .listener import RecognitionListener
@@ -61,7 +62,7 @@ class SpeechRecognizer:
                  logLevel="warning"):
         assert audioSampleRate in [8000, 16000]
         assert audioEncoding in ["pcm", "wav", "raw"]
-        assert (isinstance(listener, RecognitionListener))
+        assert isinstance(listener, RecognitionListener)
         self._serverUrl = serverUrl
         self._user = credentials[0]
         self._password = credentials[1]
@@ -75,7 +76,7 @@ class SpeechRecognizer:
         self._autoClose = autoClose
         self._logger = Logger(logStream, alias, logLevel)
         self._cv_define_grammar = Condition()
-        self._cv_start_recog = Condition()
+        self._cv_create_session = Condition()
         self._cv_send_audio = Condition()
         self._cv_wait_recog = Condition()
         self._cv_wait_cancel = Condition()
@@ -102,7 +103,7 @@ class SpeechRecognizer:
             headers = [("Authorization", credentials.decode())]
             self._ws = ASRClient(url=self._serverUrl,
                                  cv_define_grammar=self._cv_define_grammar,
-                                 cv_start_recog=self._cv_start_recog,
+                                 cv_create_session=self._cv_create_session,
                                  cv_send_audio=self._cv_send_audio,
                                  cv_wait_recog=self._cv_wait_recog,
                                  cv_wait_cancel=self._cv_wait_cancel,
@@ -121,6 +122,7 @@ class SpeechRecognizer:
                 self._logger.debug("Waiting for send audio notify")
                 self._cv_send_audio.wait(.5)  # Break loop as soon as ready
             bytestr = next(self._audioSource)
+            self._ws._time_wait_recog = time()
             for x in self._audioSource:
                 if self._ws.status != "LISTENING":
                     bytestr = x
@@ -159,7 +161,9 @@ class SpeechRecognizer:
             if self._ws.status == "ABORTED":
                 self._ws.recognition_list = []
                 return []
-            elif self._ws.status != "RECOGNIZED":
+            elif self._ws.status not in ["RECOGNIZED",
+                                         "NO_MATCH",
+                                         "NO_INPUT_TIMEOUT"]:
                 msg = "Wait recognition timeout after " \
                       "{} seconds".format(self._maxWaitSeconds)
                 self._logger.warning(msg)
@@ -189,8 +193,8 @@ class SpeechRecognizer:
             raise RecognitionException("FAILURE", msg)
         self._is_recognizing = True
         if not self._ws.isConnected():
-            with self._cv_start_recog:
-                self._cv_start_recog.wait(self._maxWaitSeconds)
+            with self._cv_create_session:
+                self._cv_create_session.wait(self._maxWaitSeconds)
         if self._ws.status != "IDLE":
             self._logger.warning("Recognize timeout after {} "
                                  "seconds".format(self._maxWaitSeconds))
@@ -203,6 +207,7 @@ class SpeechRecognizer:
                 lm_uris.append(lm)
             elif type(lm) == tuple:
                 msg = define_grammar_msg(*lm)
+                self._ws._time_define_grammar = time()
                 self._ws.send(msg, binary=True)
                 self._logger.debug(b"SEND: " + msg)
                 with self._cv_define_grammar:

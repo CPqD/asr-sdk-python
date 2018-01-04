@@ -19,6 +19,7 @@
 ASR Server WebSocket API connection handler.
 """
 import json
+from time import time
 from sys import stderr
 from threading import Condition
 from ws4py.client.threadedclient import WebSocketClient
@@ -126,7 +127,7 @@ def parse_response(msg):
 
 class ASRClient(WebSocketClient):
     def __init__(self, url,
-                 cv_define_grammar, cv_start_recog, cv_send_audio,
+                 cv_define_grammar, cv_create_session, cv_send_audio,
                  cv_wait_recog, cv_wait_cancel,
                  listener=RecognitionListener(),
                  user_agent=None,
@@ -145,7 +146,7 @@ class ASRClient(WebSocketClient):
                                         ssl_options,
                                         headers)
         assert isinstance(cv_define_grammar, Condition)
-        assert isinstance(cv_start_recog, Condition)
+        assert isinstance(cv_create_session, Condition)
         assert isinstance(cv_send_audio, Condition)
         assert isinstance(cv_wait_recog, Condition)
         assert isinstance(cv_wait_cancel, Condition)
@@ -155,9 +156,13 @@ class ASRClient(WebSocketClient):
         self._logger = logger
         self._status = "DISCONNECTED"
         self._cv_define_grammar = cv_define_grammar
-        self._cv_start_recog = cv_start_recog
+        self._time_define_grammar = 0
+        self._cv_create_session = cv_create_session
+        self._time_create_session = 0
         self._cv_send_audio = cv_send_audio
+        self._time_send_audio = 0
         self._cv_wait_recog = cv_wait_recog
+        self._time_wait_recog = 0
         self._cv_wait_cancel = cv_wait_cancel
         self._cv_opened = Condition()
         self.recognition_list = []
@@ -171,9 +176,9 @@ class ASRClient(WebSocketClient):
                self._status != "WAITING_CONFIG")
 
     def _finish_connect(self):
-        with self._cv_start_recog:
+        with self._cv_create_session:
             self._status = "IDLE"
-            self._cv_start_recog.notify_all()
+            self._cv_create_session.notify_all()
 
     def _abort(self):
         self._status = "ABORTED"
@@ -181,9 +186,9 @@ class ASRClient(WebSocketClient):
         with self._cv_define_grammar:
             self._logger.debug("Aborting define grammar")
             self._cv_define_grammar.notify_all()
-        with self._cv_start_recog:
-            self._logger.debug("Aborting start recog")
-            self._cv_start_recog.notify_all()
+        with self._cv_create_session:
+            self._logger.debug("Aborting create session")
+            self._cv_create_session.notify_all()
         with self._cv_send_audio:
             self._logger.debug("Aborting send audio")
             self._cv_send_audio.notify_all()
@@ -232,6 +237,9 @@ class ASRClient(WebSocketClient):
                 return
             if h["Method"] == "DEFINE_GRAMMAR":
                 if h["Result"] == "SUCCESS":
+                    self._logger.info("[TIMER] GrammarDefinitionTime: {} s"
+                                      .format(time() -
+                                              self._time_define_grammar))
                     self._logger.debug("Grammar defined")
                     with self._cv_define_grammar:
                         self._cv_define_grammar.notify_all()
@@ -331,8 +339,11 @@ class ASRClient(WebSocketClient):
                 )
                 self._listener.onRecognitionResult(b)
                 if last_segment:
+                    self._logger.info("[TIMER] RecogTime: {} s"
+                                      .format(time() -
+                                              self._time_wait_recog))
                     with self._cv_wait_recog:
-                        self._status = "RECOGNIZED"
+                        self._status = h["Result-Status"]
                         self._cv_wait_recog.notify_all()
 
 

@@ -49,4 +49,5 @@ def testNoMatch():
     result = asr.waitRecognitionResult()[0]
     asr.close()
     # NO_SPEECH occurs with enabled endpointer, and NO_MATCH with disabled
-    assert result.resultCode in ("NO_SPEECH", "NO_MATCH")
+    assert result.resultCode in ("NO_SPEECH", "NO_MATCH"), \
+        "Result code is {}".format(result.resultCode)
