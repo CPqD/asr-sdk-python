@@ -17,9 +17,9 @@
 # Recognition config
 url = "ws://localhost:8025/asr-server/asr"
 credentials = ("", "")
-log_level = "info"  # "error", "warning", "info" or "debug"
+log_level = "warning"  # "error", "warning", "info" or "debug"
 log_path = '/tmp/asr-sdk-python-test.log'
-slm = 'builtin:slm/general-small'
+slm = 'builtin:slm/general'
 phone_grammar_uri = 'builtin:grammar/phone'
 
 # Resource config
@@ -31,3 +31,6 @@ previsao_tempo_raw = res + "audio/previsao-tempo-8k.raw"
 silence_wav = res + "audio/silence-8k.wav"
 yes_wav = res + "audio/yes-8k.wav"
 yes_grammar_path = res + "grammar/yes_no.gram"
+pizza_wav = res + "audio/pizza-8k.wav"
+pizza_grammar_path = res + "grammar/pizza.gram"
+gibberish_wav = res + "audio/gibberish-8k.wav"
