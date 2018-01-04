@@ -115,12 +115,11 @@ class SpeechRecognizer:
 
     def _send_audio_loop(self):
         with self._cv_send_audio:
-            self._logger.debug("Waiting for send audio notify")
-            self._cv_send_audio.wait(self._maxWaitSeconds)
-            if self._ws.status != "LISTENING":
-                self._logger.warning("Send audio timeout after {} "
-                                     "seconds".format(self._maxWaitSeconds))
-                return
+            while self._ws.status not in ["LISTENING",
+                                          "NO_INPUT_TIMEOUT",
+                                          "ABORTED"]:
+                self._logger.debug("Waiting for send audio notify")
+                self._cv_send_audio.wait(.5)  # Break loop as soon as ready
             bytestr = next(self._audioSource)
             for x in self._audioSource:
                 if self._ws.status != "LISTENING":
