@@ -163,6 +163,7 @@ class SpeechRecognizer:
                 return []
             elif self._ws.status not in ["RECOGNIZED",
                                          "NO_MATCH",
+                                         "NO_SPEECH",
                                          "NO_INPUT_TIMEOUT"]:
                 msg = "Wait recognition timeout after " \
                       "{} seconds".format(self._maxWaitSeconds)
