@@ -20,72 +20,38 @@ Created on Wed Jan  3 10:07:49 2018
 
 Stability tests, which take a while to run.
 """
-from cpqdasr.speech_recognizer import SpeechRecognizer, LanguageModelList
-from cpqdasr.audio_source import FileAudioSource
-from multiprocessing import Process
-from time import time
-from .config import url, credentials, slm, pizza_wav, gibberish_wav
-from .config import pizza_grammar_path, log_level, log_path
-from sys import stdout
+from cpqdasr.speech_recognizer import LanguageModelList
+from .config import url, credentials, log_level
+from .config import slm, pizza_grammar_path, pizza_wav, gibberish_wav
+from .common import stress_recognition
 
 
-asr_kwargs = {'credentials': credentials,
-              'logLevel': 'info',
-              'maxWaitSeconds': 600}
+def expect_success_assertion(results):
+    success = False
+    for i, result in enumerate(results):
+        if result.alternatives:
+            alt = result.alternatives[0]
+        else:
+            continue
+        if not len(alt['text']) > 0:
+            continue
+        if not int(alt['score']) > 80:
+            continue
+        success = True
+    return success, "Expected at least one successful result"
 
 
-def recognize_worker(wav_path, lm_list, asr_kwargs,
-                     recognitions, executions, expect_success):
-    for e in range(executions):
-        beg = time()
-        asr = SpeechRecognizer(url, **asr_kwargs)
-        for r in range(recognitions):
-            asr.recognize(FileAudioSource(wav_path), lm_list)
-            success = False
-            for result in asr.waitRecognitionResult():
-                if result.alternatives:
-                    alt = result.alternatives[0]
-                else:
-                    continue
-                if expect_success:
-                    assert len(alt['text']) > 0
-                    assert int(alt['score']) > 80,\
-                        "Score was {}".format(int(alt['score']))
-                    success = True
-                else:
-                    alt = result.alternatives[0]
-                    assert int(alt['score']) < 75,\
-                        "Score was {}".format(int(alt['score']))
-            if not success and expect_success:
-                assert False, "Expected at least one successful result"
-        asr.close()
-        asr._logger.info("[TIMER] TotalTime: {} s"
-                         .format(time() - beg))
-
-
-def stress_recognition(wav_path, lm_list,
-                       session_range=(1, 1),
-                       recognitions=1,
-                       executions=1,
-                       expect_success=True,
-                       log_stream=stdout):
-    asr_kwargs_c = asr_kwargs
-    asr_kwargs_c['logStream'] = log_stream
-    for i in range(*session_range):
-        ps = []
-        for s in range(i+1):
-            asr_kwargs_c['alias'] = 'Session {}/{} '.format(s+1, i+1)
-            ps.append(Process(target=recognize_worker,
-                              args=(wav_path,
-                                    lm_list,
-                                    asr_kwargs_c,
-                                    recognitions,
-                                    executions,
-                                    expect_success)))
-            ps[-1].start()
-        for p in ps:
-            p.join()
-            assert p.exitcode == 0
+def expect_failure_assertion(results):
+    for i, result in enumerate(results):
+        if result.alternatives:
+            alt = result.alternatives[0]
+        else:
+            continue
+        alt = result.alternatives[0]
+        if int(alt['score']) > 75:
+            return False, ("Expected failure but result {} had score of {}"
+                           .format(i, int(alt['score'])))
+    return True, ""
 
 
 # =============================================================================
@@ -96,9 +62,14 @@ def testGrammarMatch():
              LanguageModelList.grammarFromPath('pizza', pizza_grammar_path)
          )
     with open('testGrammarMatch.log', 'w') as f:
-        stress_recognition(pizza_wav, lm, (0, 25), 1, 50,
-                           expect_success=True,
-                           log_stream=f)
+        stress_recognition(url,
+                           {'credentials': credentials,
+                            'logLevel': log_level,
+                            'maxWaitSeconds': 600,
+                            'logStream': f},
+                           pizza_wav, lm,
+                           (0, 25), 10, 10,
+                           assertion=expect_success_assertion)
 
 
 def testGrammarNoMatch():
@@ -106,22 +77,37 @@ def testGrammarNoMatch():
              LanguageModelList.grammarFromPath('pizza', pizza_grammar_path)
          )
     with open('testGrammarNoMatch.log', 'w') as f:
-        stress_recognition(gibberish_wav, lm, (0, 25), 1, 50,
-                           expect_success=False,
-                           log_stream=f)
+        stress_recognition(url,
+                           {'credentials': credentials,
+                            'logLevel': log_level,
+                            'maxWaitSeconds': 600,
+                            'logStream': f},
+                           gibberish_wav, lm,
+                           (0, 25), 10, 10,
+                           assertion=expect_failure_assertion)
 
 
 def testSlmMatch():
-    lm = LanguageModelList('builtin:slm/general')
+    lm = LanguageModelList(slm)
     with open('testSlmMatch.log', 'w') as f:
-        stress_recognition(pizza_wav, lm, (0, 25), 1, 50,
-                           expect_success=True,
-                           log_stream=f)
+        stress_recognition(url,
+                           {'credentials': credentials,
+                            'logLevel': log_level,
+                            'maxWaitSeconds': 600,
+                            'logStream': f},
+                           pizza_wav, lm,
+                           (0, 25), 10, 10,
+                           assertion=expect_success_assertion)
 
 
 def testSlmNoMatch():
-    lm = LanguageModelList('builtin:slm/general')
+    lm = LanguageModelList(slm)
     with open('testSlmNoMatch.log', 'w') as f:
-        stress_recognition(gibberish_wav, lm, (0, 25), 1, 50,
-                           expect_success=False,
-                           log_stream=f)
+        stress_recognition(url,
+                           {'credentials': credentials,
+                            'logLevel': log_level,
+                            'maxWaitSeconds': 600,
+                            'logStream': f},
+                           gibberish_wav, lm,
+                           (0, 25), 10, 10,
+                           assertion=expect_failure_assertion)
