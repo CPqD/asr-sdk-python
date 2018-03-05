@@ -21,7 +21,7 @@ Example with microphone input
 """
 from cpqdasr.speech_recognizer import SpeechRecognizer, LanguageModelList
 from cpqdasr.speech_recognizer import RecognitionException
-from cpqdasr.audio_source import SimpleMicrophoneSource
+from cpqdasr.audio_source import MicAudioSource
 from cpqdasr.listener import RecognitionListener
 
 from sys import argv
@@ -103,7 +103,7 @@ if __name__ == "__main__":
                            listener=PrinterListener(),
                            logLevel="warning")
 
-    with SimpleMicrophoneSource() as mic:
+    with MicAudioSource() as mic:
         try:
             asr.recognize(mic, lm)
             result = asr.waitRecognitionResult()

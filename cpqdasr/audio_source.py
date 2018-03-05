@@ -18,15 +18,18 @@
 
 Audio generation examples.
 
-Generators should always yield bytestrings. Their length may be variable, as
-long as they are smaller than the predefined maximum payload size from the
-configured websocket connection.
+Generators should always yield bytestrings. Our ASR interface only supports
+linear PCM with little-endian signed 16bit samples. Their length may be
+variable, as long as they are smaller than the predefined maximum payload size
+from the configured websocket connection, and the length of each bytestring
+is modulo 0 with the size of the sample (i.e. is even in length).
 """
 import soundfile as sf
 import pyaudio
+import time
 
 
-class SimpleMicrophoneSource():
+class MicAudioSource():
     """
     Simple microphone reader.
 
@@ -92,3 +95,57 @@ def FileAudioSource(path, chunk_size=4096):
         # Soundfile converts to 64-bit float ndarray. We convert back to bytes
         bytestr = (block * 2**15).astype('<i2').tobytes()
         yield bytestr
+
+
+class BufferAudioSource():
+    """
+    Very simple buffer source.
+
+    This generator has a "write" method which updates its internal buffer,
+    which is periodically consumed by the ASR instance in which it is inserted.
+
+    :buffer_size: Size of the internal buffer (in bytes)
+    :yields: bytestrings of size <buffer_size>
+
+    Terminates only if the "finish" method is called, in which case the
+    remaining buffer is sent regardless of its size.
+    """
+    def __init__(self, chunk_size=4096):
+        self._buffer = b""
+        self._chunk_size = chunk_size
+        self._finished = False
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        while True:
+            if len(self._buffer) >= self._chunk_size:
+                r = self._buffer[:self._chunk_size]
+                self._buffer = self._buffer[self._chunk_size:]
+                return r
+            elif self._finished:
+                if self._buffer:
+                    r = self._buffer
+                    self._buffer = b''
+                    return r
+                else:
+                    raise StopIteration
+            time.sleep(.05)
+
+    def write(self, byte_str):
+        """
+        Writes to the buffer.
+
+        :byte_str: A byte string (char array). Currently only 16-bit signed
+                   little-endian linear PCM is accepted.
+        """
+        self._finished = False
+        self._buffer += byte_str
+
+    def finish(self):
+        """
+        Signals the ASR instance that one's finished writing and is now waiting
+        for the recognition result.
+        """
+        self._finished = True
