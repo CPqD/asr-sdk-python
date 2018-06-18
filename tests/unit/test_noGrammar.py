@@ -18,36 +18,36 @@
 
 Tests with statistical language models
 """
-from cpqdasr.speech_recognizer import SpeechRecognizer, LanguageModelList
-from cpqdasr.audio_source import FileAudioSource
+from cpqdasr import SpeechRecognizer, LanguageModelList
+from cpqdasr import FileAudioSource
 from .config import url, credentials, slm, phone_wav, silence_wav
 from .config import log_level, log_path
 
 
 asr_kwargs = {'credentials': credentials,
-              'logLevel': log_level,
-              'logStream': open(log_path, 'w')}
+              'log_level': log_level,
+              'log_stream': open(log_path, 'w')}
 
 
 # =============================================================================
 # Test cases
 # =============================================================================
-def testBasicSLM():
+def test_basic_slm():
     asr = SpeechRecognizer(url, **asr_kwargs)
     asr.recognize(FileAudioSource(phone_wav),
                   LanguageModelList(slm))
-    result = asr.waitRecognitionResult()[0]
+    result = asr.wait_recognition_result()[0]
     asr.close()
     assert len(result.alternatives[0]['text']) > 0
     assert int(result.alternatives[0]['score']) > 90
 
 
-def testNoMatch():
+def test_no_match():
     asr = SpeechRecognizer(url, **asr_kwargs)
     asr.recognize(FileAudioSource(silence_wav),
                   LanguageModelList(slm))
-    result = asr.waitRecognitionResult()[0]
+    result = asr.wait_recognition_result()[0]
     asr.close()
     # NO_SPEECH occurs with enabled endpointer, and NO_MATCH with disabled
-    assert result.resultCode in ("NO_SPEECH", "NO_MATCH"), \
+    assert result.result_code in ("NO_SPEECH", "NO_MATCH"), \
         "Result code is {}".format(result.resultCode)

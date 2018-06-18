@@ -27,32 +27,32 @@ class RecognitionListener():
     You should subclass this class, reimplementing methods which you wish
     to add functionality.
     """
-    def onListening(self):
+    def on_listening(self):
         """
         Called when recognition enters on Listening state, i.e. when the
         speech recogntion server recieves acknowledges the first audio packet.
         """
         pass
 
-    def onSpeechStart(self, time):
+    def on_speech_start(self, time):
         """
         Called when the speech recognition server detects speech activity on
         the sent packages.
 
-        :time: The time since "onListening", in milliseconds
+        :time: The time since "on_listening", in milliseconds
         """
         pass
 
-    def onSpeechStop(self, time):
+    def on_speech_stop(self, time):
         """
         Called when the speech recognition server detects end of speech on the
         sent packages.
 
-        :time: The time since "onListening", in milliseconds
+        :time: The time since "on_listening", in milliseconds
         """
         pass
 
-    def onPartialRecognition(self, partial):
+    def on_partial_recognition(self, partial):
         """
         Called when a partial result is available.
 
@@ -60,7 +60,7 @@ class RecognitionListener():
         """
         pass
 
-    def onRecognitionResult(self, result):
+    def on_recognition_result(self, result):
         """
         Called when a final result is available.
 
@@ -68,5 +68,5 @@ class RecognitionListener():
         """
         pass
 
-    def onError(self, error):
+    def on_error(self, error):
         pass

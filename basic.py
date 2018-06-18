@@ -20,7 +20,7 @@
 Basic example with an audio file input.
 """
 from cpqdasr import SpeechRecognizer, LanguageModelList
-from cpqdasr.audio_source import FileAudioSource
+from cpqdasr import FileAudioSource
 from sys import argv
 import os
 
@@ -47,25 +47,25 @@ if __name__ == "__main__":
     url = argv[1]
     if os.path.isfile(argv[2]):
         lm = LanguageModelList(
-                LanguageModelList.grammarFromPath(
+                LanguageModelList.grammar_from_path(
                         'asdasdas', argv[2]
                 )
              )
     else:
         lm = LanguageModelList(
-                 LanguageModelList.fromURI(argv[2])
+                 LanguageModelList.from_uri(argv[2])
              )
     apath = argv[3]
     credentials = ("", "")
-    if(argc == 6):
+    if argc == 6:
         credentials = (argv[4], argv[5])
 
     asr = SpeechRecognizer(url, credentials=credentials,
-                           logStream=ostream,
-                           logLevel="debug",
-                           maxWaitSeconds=600)
+                           log_stream=ostream,
+                           log_level="debug",
+                           max_wait_seconds=600)
     asr.recognize(FileAudioSource(apath), lm)
-    res = asr.waitRecognitionResult()
+    res = asr.wait_recognition_result()
     if res:
         for k in res:
             print(k.alternatives)

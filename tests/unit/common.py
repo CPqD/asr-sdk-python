@@ -7,8 +7,7 @@ Created on Fri Jan  5 10:06:08 2018
 
 Common functions for tests
 """
-from cpqdasr.speech_recognizer import SpeechRecognizer
-from cpqdasr.audio_source import FileAudioSource
+from cpqdasr import SpeechRecognizer, FileAudioSource
 from multiprocessing import Process
 from time import time
 from sys import stdout
@@ -25,7 +24,7 @@ def recognize_worker(url, asr_kwargs, wav_path, lm_list,
         asr = SpeechRecognizer(url, **asr_kwargs)
         for r in range(recognitions):
             asr.recognize(FileAudioSource(wav_path), lm_list)
-            success, msg = assertion(asr.waitRecognitionResult())
+            success, msg = assertion(asr.wait_recognition_result())
             if not success:
                 error_msg = error_msg.format(executions, e,
                                              recognitions, r,

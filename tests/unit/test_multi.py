@@ -21,7 +21,7 @@ Created on Fri Jan  5 13:08:39 2018
 Tests with multiple segments in a single file.
 These tests only work with specific server configurations.
 """
-from cpqdasr.speech_recognizer import LanguageModelList
+from cpqdasr import LanguageModelList
 from .config import url, credentials, log_level
 from .config import slm, pizza_grammar_path, pizza_multi_wav
 from .common import stress_recognition
@@ -33,8 +33,9 @@ def multi_assertion(results):
                        .format(len(results)))
     res = 0
     for i, result in enumerate(results):
-        if result.resultCode == "RECOGNIZED":
+        if result.result_code == "RECOGNIZED":
             alt = result.alternatives[0]
+            print(alt, end='\n\n\n')
             res += 1
         else:
             continue
@@ -49,29 +50,29 @@ def multi_assertion(results):
 # =============================================================================
 # Test cases
 # =============================================================================
-def testSlmMulti():
+def test_slm_multi():
     lm = LanguageModelList(slm)
-    with open('testSlmMulti.log', 'w') as f:
+    with open('test_slm_multi.log', 'w') as f:
         stress_recognition(url,
                            {'credentials': credentials,
-                            'logLevel': log_level,
-                            'maxWaitSeconds': 600,
-                            'logStream': f},
+                            'log_level': log_level,
+                            'max_wait_seconds': 600,
+                            'log_stream': f},
                            pizza_multi_wav, lm,
                            (0, 25), 10, 10,
                            assertion=multi_assertion)
 
 
-def testGrammarMulti():
+def test_grammar_multi():
     lm = LanguageModelList(
-             LanguageModelList.grammarFromPath('pizza', pizza_grammar_path)
+             LanguageModelList.grammar_from_path('pizza', pizza_grammar_path)
          )
-    with open('testGrammarMulti.log', 'w') as f:
+    with open('test_grammar_multi.log', 'w') as f:
         stress_recognition(url,
                            {'credentials': credentials,
-                            'logLevel': log_level,
-                            'maxWaitSeconds': 600,
-                            'logStream': f},
+                            'log_level': log_level,
+                            'max_wait_seconds': 600,
+                            'log_stream': f},
                            pizza_multi_wav, lm,
                            (0, 25), 10, 10,
                            assertion=multi_assertion)

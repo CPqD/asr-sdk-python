@@ -17,4 +17,4 @@
 @author: valterf
 """
 
-VERSION = "ASR 2.3"
+

@@ -27,7 +27,7 @@ class Logger():
 
     :ostream: The output stream (stderr, files or other compatible objects)
     :alias: A string which will be pre-appended to the log. Useful for
-            logs shared accross processes.
+            logs shared across processes.
     :log_level: A string which may be, in order of increasing verbosity:
                 "error", "warning", "info" or "debug"
     """

@@ -22,29 +22,29 @@ unified API from CPqD SDKs.
 
 
 class PartialRecognitionResult:
-    def __init__(self, speechSegmentIndex, text):
-        assert(type(speechSegmentIndex) is int)
+    def __init__(self, speech_segment_index, text):
+        assert(type(speech_segment_index) is int)
         assert(type(text) is str)
-        self.speechSegmentIndex = speechSegmentIndex
+        self.speechSegmentIndex = speech_segment_index
         self.text = text
 
 
 class RecognitionResult:
-    def __init__(self, resultCode,
-                 speechSegmentIndex,
-                 lastSpeechSegment,
-                 sentenceStartTimeMilliseconds,
-                 sentenceEndTimeMilliseconds,
+    def __init__(self, result_code,
+                 speech_segment_index,
+                 last_speech_segment,
+                 sentence_start_time_milliseconds,
+                 sentence_end_time_milliseconds,
                  alternatives):
-        assert(type(resultCode) is str)
-        assert(type(speechSegmentIndex) is int)
-        assert(type(lastSpeechSegment) is bool)
-        assert(type(sentenceStartTimeMilliseconds) is int)
-        assert(type(sentenceEndTimeMilliseconds) is int)
+        assert(type(result_code) is str)
+        assert(type(speech_segment_index) is int)
+        assert(type(last_speech_segment) is bool)
+        assert(type(sentence_start_time_milliseconds) is int)
+        assert(type(sentence_end_time_milliseconds) is int)
         assert(type(alternatives) is list)
-        self.resultCode = resultCode
-        self.speechSegmentIndex = speechSegmentIndex
-        self.lastSpeechSegment = lastSpeechSegment
-        self.sentenceStartTimeMilliseconds = sentenceStartTimeMilliseconds
-        self.sentenceEndTimeMilliseconds = sentenceEndTimeMilliseconds
+        self.result_code = result_code
+        self.speech_segment_index = speech_segment_index
+        self.last_speech_segment = last_speech_segment
+        self.sentence_start_time_milliseconds = sentence_start_time_milliseconds
+        self.sentence_end_time_milliseconds = sentence_end_time_milliseconds
         self.alternatives = alternatives

@@ -26,7 +26,7 @@ class LanguageModelList:
             "You need at least 1 LM for instantiating a LanguageModelList"
 
     @staticmethod
-    def fromURI(uri):
+    def from_uri(uri):
         """
         Prepares a URI for building a LanguageModelList
 
@@ -43,7 +43,7 @@ class LanguageModelList:
         return uri
 
     @staticmethod
-    def inlineGrammar(alias, body):
+    def inline_grammar(alias, body):
         """
         Prepares an inline grammar for building a LanguageModelList
 
@@ -61,10 +61,10 @@ class LanguageModelList:
         """
         assert isinstance(alias, str)
         assert isinstance(body, str)
-        return (alias, body)
+        return alias, body
 
     @staticmethod
-    def grammarFromPath(alias, path):
+    def grammar_from_path(alias, path):
         """
         Reads a grammar file and returns a tuple with its id and body
 
@@ -78,4 +78,4 @@ class LanguageModelList:
         assert os.path.isfile(path)
         with open(path, 'r') as f:
             body = f.read()
-        return (alias, body)
+        return alias, body
