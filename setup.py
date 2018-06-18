@@ -2,13 +2,9 @@
 from setuptools import setup, find_packages
 
 install_requires = [
-  'ws4py==0.3.4',
+  'ws4py>=0.5.1',
   'soundfile>=0.9.0.post1',
   'pyaudio>=0.2.11',
-]
-
-dependency_links = [
-  'git+https://github.com/hyperair/WebSocket-for-Python.git@fix-frame-spillover#egg=ws4py-0.4.3.dev0',
 ]
 
 with open('README.md') as f:
@@ -23,11 +19,10 @@ tests_require = [
 
 setup(
     name='cpqdasr',
-    version='0.1.0',
+    version='1.0.0',
     description='CPqD ASR SDK implementation using websockets in Python',
     long_description=readme,
     install_requires=install_requires,
-    dependency_links=dependency_links,
     tests_require=tests_require,
     test_suite='nose2.collector.collector',
     author='Akira Miasato',
