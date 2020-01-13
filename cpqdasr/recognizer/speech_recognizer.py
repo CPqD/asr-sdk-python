@@ -215,7 +215,7 @@ class SpeechRecognizer:
                 with self._cv_define_grammar:
                     self._cv_define_grammar.wait(self._max_wait_seconds)
                 lm_uris.append('session:' + lm[0])
-        msg = start_recog_msg(lm_uris)
+        msg = start_recog_msg(lm_uris, self._recog_config)
         self._ws.send(msg, binary=True)
         self._logger.debug(b"SEND: " + msg)
         self._send_audio_thread = Thread(target=self._send_audio_loop)

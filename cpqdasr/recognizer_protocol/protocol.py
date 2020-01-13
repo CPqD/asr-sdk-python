@@ -52,9 +52,12 @@ def define_grammar_msg(grammar_id, grammar_body):
     return msg
 
 
-def start_recog_msg(uri_list):
+def start_recog_msg(uri_list, config):
     msg = "{} START_RECOGNITION\n".format(VERSION)
     msg += "Accept: application/json\n"
+    if config:
+        for k, v in config.items():
+            msg += "{}: {}\n".format(k, v)
     msg += "Content-Type: text/uri-list\n"
     msg += "Content-Length: {}\n\n"
     langs = '\n'.join(uri_list)
