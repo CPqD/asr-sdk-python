@@ -60,3 +60,14 @@ def test_equivalence_file_buffer():
     asr.close()
 
     assert result_file == result_buffer
+
+
+def test_empty_buffer():
+    # Buffer
+    asr = SpeechRecognizer(url, **asr_kwargs)
+    source = BufferAudioSource()
+    asr.recognize(source, LanguageModelList(slm))
+    source.finish()
+    res = asr.wait_recognition_result()
+    assert len(res[0].alternatives) == 0
+    asr.close()
