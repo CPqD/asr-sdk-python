@@ -21,7 +21,7 @@ Logger class implementation.
 from datetime import datetime
 
 
-class Logger():
+class Logger:
     """
     Simple logger which accepts any output stream and levels of verbosity.
 
@@ -31,6 +31,7 @@ class Logger():
     :log_level: A string which may be, in order of increasing verbosity:
                 "error", "warning", "info" or "debug"
     """
+
     def __init__(self, ostream, alias="", log_level="warning"):
         self._ostream = ostream
         if log_level == "error":
@@ -45,11 +46,11 @@ class Logger():
 
     def _write_log(self, s, log_level):
         if self._ostream is not None:
-            self._ostream.write("[{}] [{}] [{}]: {}\n".format(
-                                str(datetime.now()),
-                                self._alias,
-                                log_level,
-                                s))
+            self._ostream.write(
+                "[{}] [{}] [{}]: {}\n".format(
+                    str(datetime.now()), self._alias, log_level, s
+                )
+            )
             self._ostream.flush()
 
     def error(self, s):

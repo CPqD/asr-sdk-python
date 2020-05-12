@@ -16,5 +16,3 @@
 """
 @author: valterf
 """
-
-

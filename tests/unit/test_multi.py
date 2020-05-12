@@ -29,22 +29,33 @@ from .common import stress_recognition
 
 def multi_assertion(results):
     if len(results) <= 3:
-        return False, ("Number of results is {} when expected are at least 3"
-                       .format(len(results)))
+        return (
+            False,
+            (
+                "Number of results is {} when expected are at least 3".format(
+                    len(results)
+                )
+            ),
+        )
     res = 0
     for i, result in enumerate(results):
         if result.result_code == "RECOGNIZED":
             alt = result.alternatives[0]
-            print(alt, end='\n\n\n')
+            print(alt, end="\n\n\n")
             res += 1
         else:
             continue
         alt = result.alternatives[0]
-        if int(alt['score']) < 70:
-            return False, ("Score from result {} is too low: its value is {}"
-                           .format(i, int(alt['score'])))
-    return res == 3, ("Number of valid results is {} when expected are 3"
-                      .format(res))
+        if int(alt["score"]) < 70:
+            return (
+                False,
+                (
+                    "Score from result {} is too low: its value is {}".format(
+                        i, int(alt["score"])
+                    )
+                ),
+            )
+    return res == 3, ("Number of valid results is {} when expected are 3".format(res))
 
 
 # =============================================================================
@@ -52,27 +63,41 @@ def multi_assertion(results):
 # =============================================================================
 def test_slm_multi():
     lm = LanguageModelList(slm)
-    with open('test_slm_multi.log', 'w') as f:
-        stress_recognition(url,
-                           {'credentials': credentials,
-                            'log_level': log_level,
-                            'max_wait_seconds': 600,
-                            'log_stream': f},
-                           pizza_multi_wav, lm,
-                           (0, 25), 10, 10,
-                           assertion=multi_assertion)
+    with open("test_slm_multi.log", "w") as f:
+        stress_recognition(
+            url,
+            {
+                "credentials": credentials,
+                "log_level": log_level,
+                "max_wait_seconds": 600,
+                "log_stream": f,
+            },
+            pizza_multi_wav,
+            lm,
+            (0, 25),
+            10,
+            10,
+            assertion=multi_assertion,
+        )
 
 
 def test_grammar_multi():
     lm = LanguageModelList(
-             LanguageModelList.grammar_from_path('pizza', pizza_grammar_path)
-         )
-    with open('test_grammar_multi.log', 'w') as f:
-        stress_recognition(url,
-                           {'credentials': credentials,
-                            'log_level': log_level,
-                            'max_wait_seconds': 600,
-                            'log_stream': f},
-                           pizza_multi_wav, lm,
-                           (0, 25), 10, 10,
-                           assertion=multi_assertion)
+        LanguageModelList.grammar_from_path("pizza", pizza_grammar_path)
+    )
+    with open("test_grammar_multi.log", "w") as f:
+        stress_recognition(
+            url,
+            {
+                "credentials": credentials,
+                "log_level": log_level,
+                "max_wait_seconds": 600,
+                "log_stream": f,
+            },
+            pizza_multi_wav,
+            lm,
+            (0, 25),
+            10,
+            10,
+            assertion=multi_assertion,
+        )

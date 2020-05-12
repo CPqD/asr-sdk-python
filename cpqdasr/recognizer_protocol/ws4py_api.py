@@ -26,29 +26,37 @@ from ws4py.client.threadedclient import WebSocketClient
 from ..logger import Logger
 from ..recognizer.listener import RecognitionListener
 from ..recognizer.result import RecognitionResult, PartialRecognitionResult
-from .protocol import create_session_msg, set_parameters_msg, release_session_msg, parse_response
+from .protocol import (
+    create_session_msg,
+    set_parameters_msg,
+    release_session_msg,
+    parse_response,
+)
 
 
 class ASRClient(WebSocketClient):
-    def __init__(self, url,
-                 cv_define_grammar, cv_create_session, cv_send_audio,
-                 cv_wait_recog, cv_wait_cancel,
-                 listener=RecognitionListener(),
-                 user_agent=None,
-                 config=None,
-                 logger=Logger(stderr),
-                 debug=False,
-                 protocols=None,
-                 extensions=None,
-                 heartbeat_freq=None,
-                 ssl_options=None,
-                 headers=None,):
-        super(ASRClient, self).__init__(url,
-                                        protocols,
-                                        extensions,
-                                        heartbeat_freq,
-                                        ssl_options,
-                                        headers)
+    def __init__(
+        self,
+        url,
+        cv_define_grammar,
+        cv_create_session,
+        cv_send_audio,
+        cv_wait_recog,
+        cv_wait_cancel,
+        listener=RecognitionListener(),
+        user_agent=None,
+        config=None,
+        logger=Logger(stderr),
+        debug=False,
+        protocols=None,
+        extensions=None,
+        heartbeat_freq=None,
+        ssl_options=None,
+        headers=None,
+    ):
+        super(ASRClient, self).__init__(
+            url, protocols, extensions, heartbeat_freq, ssl_options, headers
+        )
         assert isinstance(cv_define_grammar, Condition)
         assert isinstance(cv_create_session, Condition)
         assert isinstance(cv_send_audio, Condition)
@@ -76,8 +84,7 @@ class ASRClient(WebSocketClient):
         self.close()
 
     def is_connected(self):
-        return(self._status != "DISCONNECTED" and
-               self._status != "WAITING_CONFIG")
+        return self._status != "DISCONNECTED" and self._status != "WAITING_CONFIG"
 
     def _finish_connect(self):
         with self._cv_create_session:
@@ -126,10 +133,12 @@ class ASRClient(WebSocketClient):
         # Parsing and returning error if bad response
         self._logger.debug(msg.data)
         call, h, b = parse_response(msg)
-        if call not in ["RESPONSE",
-                        "START_OF_SPEECH",
-                        "END_OF_SPEECH",
-                        "RECOGNITION_RESULT"]:
+        if call not in [
+            "RESPONSE",
+            "START_OF_SPEECH",
+            "END_OF_SPEECH",
+            "RECOGNITION_RESULT",
+        ]:
             self.warning("Bad response:\n\n{}".format(call))
             return
 
@@ -141,15 +150,18 @@ class ASRClient(WebSocketClient):
                 return
             if h["Method"] == "DEFINE_GRAMMAR":
                 if h["Result"] == "SUCCESS":
-                    self._logger.info("[TIMER] GrammarDefinitionTime: {} s"
-                                      .format(time() -
-                                              self._time_define_grammar))
+                    self._logger.info(
+                        "[TIMER] GrammarDefinitionTime: {} s".format(
+                            time() - self._time_define_grammar
+                        )
+                    )
                     self._logger.debug("Grammar defined")
                     with self._cv_define_grammar:
                         self._cv_define_grammar.notify_all()
                 else:
-                    self._logger.warning("Error on defining grammar: "
-                                         "{}".format(msg.data))
+                    self._logger.warning(
+                        "Error on defining grammar: " "{}".format(msg.data)
+                    )
                     self._abort()
                 return
             if h["Method"] == "START_RECOGNITION":
@@ -159,8 +171,9 @@ class ASRClient(WebSocketClient):
                     with self._cv_send_audio:
                         self._cv_send_audio.notify_all()
                 else:
-                    self._logger.warning("Error on start recognition: "
-                                         "{}".format(msg.data))
+                    self._logger.warning(
+                        "Error on start recognition: " "{}".format(msg.data)
+                    )
                     self._abort()
                 return
 
@@ -172,13 +185,17 @@ class ASRClient(WebSocketClient):
         # Treats the expected message when first "CREATE_SESSION" is sent
         if self._status == "DISCONNECTED":
             if call != "RESPONSE":
-                self._logger.warning("Invalid received message on open "
-                                     "connection: expected RESPONSE, got "
-                                     "{}".format(session_status))
+                self._logger.warning(
+                    "Invalid received message on open "
+                    "connection: expected RESPONSE, got "
+                    "{}".format(session_status)
+                )
             elif session_status != "IDLE":
-                self._logger.warning("Invalid status on open connection: "
-                                     "expected IDLE, got "
-                                     "{}".format(session_status))
+                self._logger.warning(
+                    "Invalid status on open connection: "
+                    "expected IDLE, got "
+                    "{}".format(session_status)
+                )
             else:
                 # Sends config message if set, otherwise the client will
                 # use the server's default parameters
@@ -200,35 +217,33 @@ class ASRClient(WebSocketClient):
             # If an error occurs, do not halt the client. Instead, log
             # the error
             elif "Error-Code" in h:
-                self._logger.warning("Non-fatal error in API call: Code "
-                                     "{}".format(h["Error-Code"]))
+                self._logger.warning(
+                    "Non-fatal error in API call: Code " "{}".format(h["Error-Code"])
+                )
                 self._abort()
 
-            elif h['Method'] == "CANCEL_RECOGNITION":
+            elif h["Method"] == "CANCEL_RECOGNITION":
                 with self._cv_wait_cancel:
                     self._cv_wait_cancel.notify_all()
                     self._status = "IDLE"
 
             # Default response case which is ignored
             else:
-                self._logger.info("Ignored {} response".format(h['Method']))
+                self._logger.info("Ignored {} response".format(h["Method"]))
             return
 
         if call == "RECOGNITION_RESULT":
             if h["Result-Status"] == "PROCESSING":
                 self._listener.on_partial_recognition(
-                    PartialRecognitionResult(
-                        0,
-                        b['alternatives'][0]['text'].strip()
-                    )
+                    PartialRecognitionResult(0, b["alternatives"][0]["text"].strip())
                 )
             else:
-                if 'alternatives' in b:
-                    result = b['alternatives']
+                if "alternatives" in b:
+                    result = b["alternatives"]
                 else:
                     result = []
-                if 'last_segment' in b:
-                    last_segment = b['last_segment']
+                if "last_segment" in b:
+                    last_segment = b["last_segment"]
                 else:
                     last_segment = True
                 self.recognition_list.append(
@@ -238,14 +253,14 @@ class ASRClient(WebSocketClient):
                         last_speech_segment=last_segment,
                         sentence_start_time_milliseconds=0,
                         sentence_end_time_milliseconds=0,
-                        alternatives=result
+                        alternatives=result,
                     )
                 )
                 self._listener.on_recognition_result(b)
                 if last_segment:
-                    self._logger.info("[TIMER] RecogTime: {} s"
-                                      .format(time() -
-                                              self._time_wait_recog))
+                    self._logger.info(
+                        "[TIMER] RecogTime: {} s".format(time() - self._time_wait_recog)
+                    )
                     with self._cv_wait_recog:
                         self._status = h["Result-Status"]
                         self._cv_wait_recog.notify_all()
@@ -256,7 +271,6 @@ if __name__ == "__main__":
     listener = RecognitionListener()
     listener.on_recognition_result = lambda x: print(x)
     url = "ws://localhost:8025/asr-server/asr"
-    ws = ASRClient(url, Condition(), listener,
-                   logger=Logger(stderr, debug=True))
+    ws = ASRClient(url, Condition(), listener, logger=Logger(stderr, debug=True))
     ws.connect()
     ws.disconnect()

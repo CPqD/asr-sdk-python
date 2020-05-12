@@ -13,10 +13,12 @@ from time import time
 from sys import stdout
 
 
-def recognize_worker(url, asr_kwargs, wav_path, lm_list,
-                     recognitions, executions, assertion):
-    error_msg = ("Parameters: url:{}, wav_path:{}, lm_list:{}"
-                 .format(url, wav_path, lm_list))
+def recognize_worker(
+    url, asr_kwargs, wav_path, lm_list, recognitions, executions, assertion
+):
+    error_msg = "Parameters: url:{}, wav_path:{}, lm_list:{}".format(
+        url, wav_path, lm_list
+    )
     error_msg += "\nOn execution {}/{}\nOn recognition {}/{}"
     error_msg += "\nError from assertion: {}"
     for e in range(executions):
@@ -26,21 +28,23 @@ def recognize_worker(url, asr_kwargs, wav_path, lm_list,
             asr.recognize(FileAudioSource(wav_path), lm_list)
             success, msg = assertion(asr.wait_recognition_result())
             if not success:
-                error_msg = error_msg.format(executions, e,
-                                             recognitions, r,
-                                             msg)
+                error_msg = error_msg.format(executions, e, recognitions, r, msg)
                 assert success, error_msg
         asr.close()
-        asr._logger.info("[TIMER] TotalTime: {} s"
-                         .format(time() - beg))
+        asr._logger.info("[TIMER] TotalTime: {} s".format(time() - beg))
 
 
-def stress_recognition(url, asr_kwargs, wav_path, lm_list,
-                       session_range=(0, 1),
-                       recognitions=1,
-                       executions=1,
-                       log_stream=stdout,
-                       assertion=lambda x: (True, "")):
+def stress_recognition(
+    url,
+    asr_kwargs,
+    wav_path,
+    lm_list,
+    session_range=(0, 1),
+    recognitions=1,
+    executions=1,
+    log_stream=stdout,
+    assertion=lambda x: (True, ""),
+):
     """
     Stresses recognition by testing a range of simultaneous sessions.
     This stresses both client and server, and should be useful for simulating
@@ -68,16 +72,22 @@ def stress_recognition(url, asr_kwargs, wav_path, lm_list,
     """
     for i in range(*session_range):
         ps = []
-        for s in range(i+1):
-            asr_kwargs['alias'] = 'Session {}/{} '.format(s+1, i+1)
-            ps.append(Process(target=recognize_worker,
-                              args=(url,
-                                    asr_kwargs,
-                                    wav_path,
-                                    lm_list,
-                                    recognitions,
-                                    executions,
-                                    assertion)))
+        for s in range(i + 1):
+            asr_kwargs["alias"] = "Session {}/{} ".format(s + 1, i + 1)
+            ps.append(
+                Process(
+                    target=recognize_worker,
+                    args=(
+                        url,
+                        asr_kwargs,
+                        wav_path,
+                        lm_list,
+                        recognitions,
+                        executions,
+                        assertion,
+                    ),
+                )
+            )
             ps[-1].start()
         for p in ps:
             p.join()

@@ -23,25 +23,28 @@ unified API from CPqD SDKs.
 
 class PartialRecognitionResult:
     def __init__(self, speech_segment_index, text):
-        assert(type(speech_segment_index) is int)
-        assert(type(text) is str)
+        assert type(speech_segment_index) is int
+        assert type(text) is str
         self.speechSegmentIndex = speech_segment_index
         self.text = text
 
 
 class RecognitionResult:
-    def __init__(self, result_code,
-                 speech_segment_index,
-                 last_speech_segment,
-                 sentence_start_time_milliseconds,
-                 sentence_end_time_milliseconds,
-                 alternatives):
-        assert(type(result_code) is str)
-        assert(type(speech_segment_index) is int)
-        assert(type(last_speech_segment) is bool)
-        assert(type(sentence_start_time_milliseconds) is int)
-        assert(type(sentence_end_time_milliseconds) is int)
-        assert(type(alternatives) is list)
+    def __init__(
+        self,
+        result_code,
+        speech_segment_index,
+        last_speech_segment,
+        sentence_start_time_milliseconds,
+        sentence_end_time_milliseconds,
+        alternatives,
+    ):
+        assert type(result_code) is str
+        assert type(speech_segment_index) is int
+        assert type(last_speech_segment) is bool
+        assert type(sentence_start_time_milliseconds) is int
+        assert type(sentence_end_time_milliseconds) is int
+        assert type(alternatives) is list
         self.result_code = result_code
         self.speech_segment_index = speech_segment_index
         self.last_speech_segment = last_speech_segment

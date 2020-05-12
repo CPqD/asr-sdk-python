@@ -26,44 +26,50 @@ import os
 
 
 def usage():
-    print("Usage: {} <ws_url> <lang_uri_or_path> <wav_path> [ <user> <password> ]"
-          .format(argv[0]))
-    print("   eg: {} ws://127.0.0.1:8025/asr-server/asr "
-          "builtin:grammar/samples/phone /path/to/audio.wav".format(argv[0]))
-    print("  eg2: {} wss://contact/cpqd/and/request/a/key/ "
-          "builtin:slm/general /path/to/audio.wav "
-          "myusername mypassword".format(argv[0]))
-    print("  eg3: {} ws://127.0.0.1:8025/asr-server/asr "
-          "/path/to/my/grammar /path/to/audio.wav".format(argv[0]))
+    print(
+        "Usage: {} <ws_url> <lang_uri_or_path> <wav_path> [ <user> <password> ]".format(
+            argv[0]
+        )
+    )
+    print(
+        "   eg: {} ws://127.0.0.1:8025/asr-server/asr "
+        "builtin:grammar/samples/phone /path/to/audio.wav".format(argv[0])
+    )
+    print(
+        "  eg2: {} wss://contact/cpqd/and/request/a/key/ "
+        "builtin:slm/general /path/to/audio.wav "
+        "myusername mypassword".format(argv[0])
+    )
+    print(
+        "  eg3: {} ws://127.0.0.1:8025/asr-server/asr "
+        "/path/to/my/grammar /path/to/audio.wav".format(argv[0])
+    )
     exit()
 
 
 if __name__ == "__main__":
-    ostream = open('log.txt', 'a')
+    ostream = open("log.txt", "a")
     argc = len(argv)
     if argc != 4 and argc != 6:
         usage()
 
     url = argv[1]
     if os.path.isfile(argv[2]):
-        lm = LanguageModelList(
-                LanguageModelList.grammar_from_path(
-                        'asdasdas', argv[2]
-                )
-             )
+        lm = LanguageModelList(LanguageModelList.grammar_from_path("asdasdas", argv[2]))
     else:
-        lm = LanguageModelList(
-                 LanguageModelList.from_uri(argv[2])
-             )
+        lm = LanguageModelList(LanguageModelList.from_uri(argv[2]))
     apath = argv[3]
     credentials = ("", "")
     if argc == 6:
         credentials = (argv[4], argv[5])
 
-    asr = SpeechRecognizer(url, credentials=credentials,
-                           log_stream=ostream,
-                           log_level="debug",
-                           max_wait_seconds=600)
+    asr = SpeechRecognizer(
+        url,
+        credentials=credentials,
+        log_stream=ostream,
+        log_level="debug",
+        max_wait_seconds=600,
+    )
     asr.recognize(FileAudioSource(apath), lm)
     res = asr.wait_recognition_result()
     if res:

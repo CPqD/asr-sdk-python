@@ -27,7 +27,12 @@ import copy
 
 from cpqdasr.logger import Logger
 from cpqdasr.recognizer_protocol import WS4PYClient
-from cpqdasr.recognizer_protocol import send_audio_msg, cancel_recog_msg, start_recog_msg, define_grammar_msg
+from cpqdasr.recognizer_protocol import (
+    send_audio_msg,
+    cancel_recog_msg,
+    start_recog_msg,
+    define_grammar_msg,
+)
 
 from .listener import RecognitionListener
 from .language_model_list import LanguageModelList
@@ -49,18 +54,23 @@ class SpeechRecognizer:
     For an example of use, see the example in:
         http://speech-doc.cpqd.com.br/asr/get_started/sdks.html
     """
-    def __init__(self, server_url, credentials=("", ""),
-                 alias="PySpeechRecognizer",
-                 log_stream=stderr,
-                 recog_config=None,
-                 user_agent=None,
-                 listener=RecognitionListener(),
-                 audio_sample_rate=8000,
-                 audio_encoding='pcm',
-                 max_wait_seconds=30,
-                 connect_on_recognize=False,
-                 auto_close=False,
-                 log_level="warning"):
+
+    def __init__(
+        self,
+        server_url,
+        credentials=("", ""),
+        alias="PySpeechRecognizer",
+        log_stream=stderr,
+        recog_config=None,
+        user_agent=None,
+        listener=RecognitionListener(),
+        audio_sample_rate=8000,
+        audio_encoding="pcm",
+        max_wait_seconds=30,
+        connect_on_recognize=False,
+        auto_close=False,
+        log_level="warning",
+    ):
         assert audio_sample_rate in [8000, 16000]
         assert audio_encoding in ["pcm", "wav", "raw"]
         assert isinstance(listener, RecognitionListener)
@@ -98,30 +108,31 @@ class SpeechRecognizer:
 
     def _connect(self):
         if self._ws is None:
-            credentials = b64encode(b':'.join([self._user.encode(),
-                                               self._password.encode()]))
+            credentials = b64encode(
+                b":".join([self._user.encode(), self._password.encode()])
+            )
             credentials = b"Basic " + credentials
             headers = [("Authorization", credentials.decode())]
-            self._ws = WS4PYClient(url=self._serverUrl,
-                                   cv_define_grammar=self._cv_define_grammar,
-                                   cv_create_session=self._cv_create_session,
-                                   cv_send_audio=self._cv_send_audio,
-                                   cv_wait_recog=self._cv_wait_recog,
-                                   cv_wait_cancel=self._cv_wait_cancel,
-                                   listener=self._listener,
-                                   user_agent=self._user_agent,
-                                   config=self._session_config,
-                                   logger=self._logger,
-                                   headers=headers)
+            self._ws = WS4PYClient(
+                url=self._serverUrl,
+                cv_define_grammar=self._cv_define_grammar,
+                cv_create_session=self._cv_create_session,
+                cv_send_audio=self._cv_send_audio,
+                cv_wait_recog=self._cv_wait_recog,
+                cv_wait_cancel=self._cv_wait_cancel,
+                listener=self._listener,
+                user_agent=self._user_agent,
+                config=self._session_config,
+                logger=self._logger,
+                headers=headers,
+            )
             self._ws.connect()
 
     def _send_audio_loop(self):
         with self._cv_send_audio:
-            while self._ws.status not in ["LISTENING",
-                                          "NO_INPUT_TIMEOUT",
-                                          "ABORTED"]:
+            while self._ws.status not in ["LISTENING", "NO_INPUT_TIMEOUT", "ABORTED"]:
                 self._logger.debug("Waiting for send audio notify")
-                self._cv_send_audio.wait(.5)  # Break loop as soon as ready
+                self._cv_send_audio.wait(0.5)  # Break loop as soon as ready
             bytes = next(self._audio_source)
             self._ws._time_wait_recog = time()
             for x in self._audio_source:
@@ -142,8 +153,9 @@ class SpeechRecognizer:
             try:
                 self._ws.disconnect()
             except Exception as e:
-                self._logger.warning("Non-critical error on disconnect: "
-                                     "{}".format(e))
+                self._logger.warning(
+                    "Non-critical error on disconnect: " "{}".format(e)
+                )
             self._ws = None
 
     def wait_recognition_result(self):
@@ -162,12 +174,15 @@ class SpeechRecognizer:
             if self._ws.status == "ABORTED":
                 self._ws.recognition_list = []
                 return []
-            elif self._ws.status not in ["RECOGNIZED",
-                                         "NO_MATCH",
-                                         "NO_SPEECH",
-                                         "NO_INPUT_TIMEOUT"]:
-                msg = "Wait recognition timeout after " \
-                      "{} seconds".format(self._max_wait_seconds)
+            elif self._ws.status not in [
+                "RECOGNIZED",
+                "NO_MATCH",
+                "NO_SPEECH",
+                "NO_INPUT_TIMEOUT",
+            ]:
+                msg = "Wait recognition timeout after " "{} seconds".format(
+                    self._max_wait_seconds
+                )
                 self._logger.warning(msg)
                 self.cancel_recognition()
                 if self._auto_close:
@@ -186,7 +201,7 @@ class SpeechRecognizer:
                 return ret
 
     def recognize(self, audio_source, lm_list, config=None):
-        assert(isinstance(lm_list, LanguageModelList))
+        assert isinstance(lm_list, LanguageModelList)
         if self._ws is None:
             self._connect()
         if self._is_recognizing:
@@ -198,8 +213,9 @@ class SpeechRecognizer:
             with self._cv_create_session:
                 self._cv_create_session.wait(self._max_wait_seconds)
         if self._ws.status != "IDLE":
-            self._logger.warning("Recognize timeout after {} "
-                                 "seconds".format(self._max_wait_seconds))
+            self._logger.warning(
+                "Recognize timeout after {} " "seconds".format(self._max_wait_seconds)
+            )
             return
         self._recog_config = config
         self._audio_source = audio_source
@@ -214,7 +230,7 @@ class SpeechRecognizer:
                 self._logger.debug(b"SEND: " + msg)
                 with self._cv_define_grammar:
                     self._cv_define_grammar.wait(self._max_wait_seconds)
-                lm_uris.append('session:' + lm[0])
+                lm_uris.append("session:" + lm[0])
         msg = start_recog_msg(lm_uris, self._recog_config)
         self._ws.send(msg, binary=True)
         self._logger.debug(b"SEND: " + msg)
@@ -226,8 +242,10 @@ class SpeechRecognizer:
         self._send_audio_thread.join(self._max_wait_seconds)
         self._join_thread = False
         if self._send_audio_thread.isAlive():
-            self._logger.warning("Send audio thread join timeout after "
-                                 "{} seconds".format(self._max_wait_seconds))
+            self._logger.warning(
+                "Send audio thread join timeout after "
+                "{} seconds".format(self._max_wait_seconds)
+            )
         self._send_audio_thread = None
         self._is_recognizing = False
 
@@ -235,10 +253,10 @@ class SpeechRecognizer:
         if self._send_audio_thread is not None:
             if not self._ws.terminated:
                 self._ws.send(cancel_recog_msg(), binary=True)
-#                with self._cv_wait_recog:
-#                    self._cv_wait_recog.wait(self._max_wait_seconds)
-#                if self._ws.status != "IDLE":
-#                    self._logger.warning("Timeout on waiting Cancel Recognition")
+            #                with self._cv_wait_recog:
+            #                    self._cv_wait_recog.wait(self._max_wait_seconds)
+            #                if self._ws.status != "IDLE":
+            #                    self._logger.warning("Timeout on waiting Cancel Recognition")
             self._finish_recognition()
             self._ws.recognition_list = []  # Clear result after cancelling
         else:

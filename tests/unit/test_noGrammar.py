@@ -24,9 +24,11 @@ from .config import url, credentials, slm, phone_wav, silence_wav
 from .config import log_level, log_path
 
 
-asr_kwargs = {'credentials': credentials,
-              'log_level': log_level,
-              'log_stream': open(log_path, 'w')}
+asr_kwargs = {
+    "credentials": credentials,
+    "log_level": log_level,
+    "log_stream": open(log_path, "w"),
+}
 
 
 # =============================================================================
@@ -34,20 +36,19 @@ asr_kwargs = {'credentials': credentials,
 # =============================================================================
 def test_basic_slm():
     asr = SpeechRecognizer(url, **asr_kwargs)
-    asr.recognize(FileAudioSource(phone_wav),
-                  LanguageModelList(slm))
+    asr.recognize(FileAudioSource(phone_wav), LanguageModelList(slm))
     result = asr.wait_recognition_result()[0]
     asr.close()
-    assert len(result.alternatives[0]['text']) > 0
-    assert int(result.alternatives[0]['score']) > 90
+    assert len(result.alternatives[0]["text"]) > 0
+    assert int(result.alternatives[0]["score"]) > 90
 
 
 def test_no_match():
     asr = SpeechRecognizer(url, **asr_kwargs)
-    asr.recognize(FileAudioSource(silence_wav),
-                  LanguageModelList(slm))
+    asr.recognize(FileAudioSource(silence_wav), LanguageModelList(slm))
     result = asr.wait_recognition_result()[0]
     asr.close()
     # NO_SPEECH occurs with enabled endpointer, and NO_MATCH with disabled
-    assert result.result_code in ("NO_SPEECH", "NO_MATCH"), \
-        "Result code is {}".format(result.resultCode)
+    assert result.result_code in ("NO_SPEECH", "NO_MATCH"), "Result code is {}".format(
+        result.resultCode
+    )

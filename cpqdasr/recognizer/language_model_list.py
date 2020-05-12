@@ -22,8 +22,9 @@ class LanguageModelList:
                 self._lm_list.append(lm)
             else:
                 assert False, error_msg
-        assert len(self._lm_list) > 0, \
-            "You need at least 1 LM for instantiating a LanguageModelList"
+        assert (
+            len(self._lm_list) > 0
+        ), "You need at least 1 LM for instantiating a LanguageModelList"
 
     @staticmethod
     def from_uri(uri):
@@ -39,7 +40,7 @@ class LanguageModelList:
         :uri:      A URI in plain text
         """
         assert isinstance(uri, str)
-        assert uri.split(':')[0] in ("file", "builtin", "http")
+        assert uri.split(":")[0] in ("file", "builtin", "http")
         return uri
 
     @staticmethod
@@ -76,6 +77,6 @@ class LanguageModelList:
         """
         assert isinstance(path, str)
         assert os.path.isfile(path)
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             body = f.read()
         return alias, body

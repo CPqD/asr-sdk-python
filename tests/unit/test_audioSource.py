@@ -19,16 +19,23 @@
 Tests with audio sources
 """
 
-from cpqdasr import SpeechRecognizer, LanguageModelList, FileAudioSource, BufferAudioSource
+from cpqdasr import (
+    SpeechRecognizer,
+    LanguageModelList,
+    FileAudioSource,
+    BufferAudioSource,
+)
 from .config import url, credentials, slm, phone_wav
 from .config import log_level, log_path
 
 import soundfile as sf
 
 
-asr_kwargs = {'credentials': credentials,
-              'log_level': log_level,
-              'log_stream': open(log_path, 'w')}
+asr_kwargs = {
+    "credentials": credentials,
+    "log_level": log_level,
+    "log_stream": open(log_path, "w"),
+}
 
 
 # =============================================================================
@@ -38,20 +45,18 @@ def test_equivalence_file_buffer():
 
     # File
     asr = SpeechRecognizer(url, **asr_kwargs)
-    asr.recognize(FileAudioSource(phone_wav),
-                  LanguageModelList(slm))
-    result_file = asr.wait_recognition_result()[0].alternatives[0]['text']
+    asr.recognize(FileAudioSource(phone_wav), LanguageModelList(slm))
+    result_file = asr.wait_recognition_result()[0].alternatives[0]["text"]
     asr.close()
 
     # Buffer
     asr = SpeechRecognizer(url, **asr_kwargs)
     source = BufferAudioSource()
-    asr.recognize(source,
-                  LanguageModelList(slm))
+    asr.recognize(source, LanguageModelList(slm))
     sig, rate = sf.read(phone_wav)
-    source.write((sig * 2**15).astype('int16').tobytes())
+    source.write((sig * 2 ** 15).astype("int16").tobytes())
     source.finish()
-    result_buffer = asr.wait_recognition_result()[0].alternatives[0]['text']
+    result_buffer = asr.wait_recognition_result()[0].alternatives[0]["text"]
     asr.close()
 
     assert result_file == result_buffer

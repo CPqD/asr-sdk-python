@@ -29,7 +29,7 @@ import pyaudio
 import time
 
 
-class MicAudioSource():
+class MicAudioSource:
     """
     Simple microphone reader.
 
@@ -45,20 +45,21 @@ class MicAudioSource():
     Does not terminate. When used inside a SpeechRecognition instance, it
     is halted when the recognition instance is cancelled or closed.
     """
-    def __init__(self, sample_rate=8000,
-                 sample_type=pyaudio.paInt16,
-                 chunk_size=4096):
+
+    def __init__(self, sample_rate=8000, sample_type=pyaudio.paInt16, chunk_size=4096):
         self._audio = pyaudio.PyAudio()
         self._sample_rate = sample_rate
         self._sample_type = sample_type
         self._chunk_size = chunk_size
 
     def __enter__(self):
-        self._stream = self._audio.open(format=self._sample_type,
-                                        channels=1,
-                                        rate=self._sample_rate,
-                                        input=True,
-                                        frames_per_buffer=self._chunk_size)
+        self._stream = self._audio.open(
+            format=self._sample_type,
+            channels=1,
+            rate=self._sample_rate,
+            input=True,
+            frames_per_buffer=self._chunk_size,
+        )
         return self
 
     def __exit__(self, etype, value, traceback):
@@ -93,11 +94,11 @@ def FileAudioSource(path, chunk_size=4096):
     """
     for block in sf.blocks(path, chunk_size):
         # Soundfile converts to 64-bit float ndarray. We convert back to bytes
-        bytestr = (block * 2**15).astype('<i2').tobytes()
+        bytestr = (block * 2 ** 15).astype("<i2").tobytes()
         yield bytestr
 
 
-class BufferAudioSource():
+class BufferAudioSource:
     """
     Very simple buffer source.
 
@@ -110,6 +111,7 @@ class BufferAudioSource():
     Terminates only if the "finish" method is called, in which case the
     remaining buffer is sent regardless of its size.
     """
+
     def __init__(self, chunk_size=4096):
         self._buffer = b""
         self._chunk_size = chunk_size
@@ -121,17 +123,17 @@ class BufferAudioSource():
     def __next__(self):
         while True:
             if len(self._buffer) >= self._chunk_size:
-                r = self._buffer[:self._chunk_size]
-                self._buffer = self._buffer[self._chunk_size:]
+                r = self._buffer[: self._chunk_size]
+                self._buffer = self._buffer[self._chunk_size :]
                 return r
             elif self._finished:
                 if self._buffer:
                     r = self._buffer
-                    self._buffer = b''
+                    self._buffer = b""
                     return r
                 else:
                     raise StopIteration
-            time.sleep(.05)
+            time.sleep(0.05)
 
     def write(self, byte_str):
         """

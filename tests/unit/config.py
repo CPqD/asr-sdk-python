@@ -18,9 +18,9 @@
 url = "ws://localhost:8025/asr-server/asr"
 credentials = ("", "")
 log_level = "warning"  # "error", "warning", "info" or "debug"
-log_path = '/tmp/asr-sdk-python-test.log'
-slm = 'builtin:slm/general'
-phone_grammar_uri = 'builtin:grammar/phone'
+log_path = "/tmp/asr-sdk-python-test.log"
+slm = "builtin:slm/general"
+phone_grammar_uri = "builtin:grammar/phone"
 
 # Resource config
 res = "tests/unit/res/"

@@ -33,9 +33,9 @@ def expect_success_assertion(results):
             alt = result.alternatives[0]
         else:
             continue
-        if not len(alt['text']) > 0:
+        if not len(alt["text"]) > 0:
             continue
-        if not int(alt['score']) > 80:
+        if not int(alt["score"]) > 80:
             continue
         success = True
     return success, "Expected at least one successful result"
@@ -48,9 +48,15 @@ def expect_failure_assertion(results):
         else:
             continue
         alt = result.alternatives[0]
-        if int(alt['score']) > 75:
-            return False, ("Expected failure but result {} had score of {}"
-                           .format(i, int(alt['score'])))
+        if int(alt["score"]) > 75:
+            return (
+                False,
+                (
+                    "Expected failure but result {} had score of {}".format(
+                        i, int(alt["score"])
+                    )
+                ),
+            )
     return True, ""
 
 
@@ -59,55 +65,83 @@ def expect_failure_assertion(results):
 # =============================================================================
 def test_grammar_match():
     lm = LanguageModelList(
-             LanguageModelList.grammarFromPath('pizza', pizza_grammar_path)
-         )
-    with open('testGrammarMatch.log', 'w') as f:
-        stress_recognition(url,
-                           {'credentials': credentials,
-                            'log_level': log_level,
-                            'max_wait_seconds': 600,
-                            'log_stream': f},
-                           pizza_wav, lm,
-                           (0, 25), 10, 10,
-                           assertion=expect_success_assertion)
+        LanguageModelList.grammarFromPath("pizza", pizza_grammar_path)
+    )
+    with open("testGrammarMatch.log", "w") as f:
+        stress_recognition(
+            url,
+            {
+                "credentials": credentials,
+                "log_level": log_level,
+                "max_wait_seconds": 600,
+                "log_stream": f,
+            },
+            pizza_wav,
+            lm,
+            (0, 25),
+            10,
+            10,
+            assertion=expect_success_assertion,
+        )
 
 
 def test_grammar_nomatch():
     lm = LanguageModelList(
-             LanguageModelList.grammarFromPath('pizza', pizza_grammar_path)
-         )
-    with open('testGrammarNoMatch.log', 'w') as f:
-        stress_recognition(url,
-                           {'credentials': credentials,
-                            'log_level': log_level,
-                            'max_wait_seconds': 600,
-                            'log_stream': f},
-                           gibberish_wav, lm,
-                           (0, 25), 10, 10,
-                           assertion=expect_failure_assertion)
+        LanguageModelList.grammarFromPath("pizza", pizza_grammar_path)
+    )
+    with open("testGrammarNoMatch.log", "w") as f:
+        stress_recognition(
+            url,
+            {
+                "credentials": credentials,
+                "log_level": log_level,
+                "max_wait_seconds": 600,
+                "log_stream": f,
+            },
+            gibberish_wav,
+            lm,
+            (0, 25),
+            10,
+            10,
+            assertion=expect_failure_assertion,
+        )
 
 
 def test_slm_match():
     lm = LanguageModelList(slm)
-    with open('testSlmMatch.log', 'w') as f:
-        stress_recognition(url,
-                           {'credentials': credentials,
-                            'log_level': log_level,
-                            'max_wait_seconds': 600,
-                            'log_stream': f},
-                           pizza_wav, lm,
-                           (0, 25), 10, 10,
-                           assertion=expect_success_assertion)
+    with open("testSlmMatch.log", "w") as f:
+        stress_recognition(
+            url,
+            {
+                "credentials": credentials,
+                "log_level": log_level,
+                "max_wait_seconds": 600,
+                "log_stream": f,
+            },
+            pizza_wav,
+            lm,
+            (0, 25),
+            10,
+            10,
+            assertion=expect_success_assertion,
+        )
 
 
 def test_slm_nomatch():
     lm = LanguageModelList(slm)
-    with open('testSlmNoMatch.log', 'w') as f:
-        stress_recognition(url,
-                           {'credentials': credentials,
-                            'log_level': log_level,
-                            'max_wait_seconds': 600,
-                            'log_stream': f},
-                           gibberish_wav, lm,
-                           (0, 25), 10, 10,
-                           assertion=expect_failure_assertion)
+    with open("testSlmNoMatch.log", "w") as f:
+        stress_recognition(
+            url,
+            {
+                "credentials": credentials,
+                "log_level": log_level,
+                "max_wait_seconds": 600,
+                "log_stream": f,
+            },
+            gibberish_wav,
+            lm,
+            (0, 25),
+            10,
+            10,
+            assertion=expect_failure_assertion,
+        )

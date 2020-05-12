@@ -60,7 +60,7 @@ def start_recog_msg(uri_list, config):
             msg += "{}: {}\n".format(k, v)
     msg += "Content-Type: text/uri-list\n"
     msg += "Content-Length: {}\n\n"
-    langs = '\n'.join(uri_list)
+    langs = "\n".join(uri_list)
     msg = msg.format(len(langs)).encode()
     msg += langs.encode()
     return msg
@@ -103,18 +103,18 @@ def parse_response(msg):
     header, and the second one to the JSON body.
     """
     msg = msg.data
-    msg = msg.replace(b'\r', b'')
-    msg = msg.split(b'\n\n')
-    header = msg[0].decode().split('\n')
+    msg = msg.replace(b"\r", b"")
+    msg = msg.split(b"\n\n")
+    header = msg[0].decode().split("\n")
     h = {}
     r = header[0].split()[-1]
     for l in header[1:]:
-        split = [x.strip() for x in l.split(':')]
+        split = [x.strip() for x in l.split(":")]
         key = split[0]
-        val = ':'.join(split[1:])
+        val = ":".join(split[1:])
         h[key] = val
 
-    body = b'\n\n'.join(msg[1:])
+    body = b"\n\n".join(msg[1:])
     if body:
         b = json.loads(body.decode())
     else:

@@ -20,13 +20,14 @@ RecognitionLister interface for recognition callbacks
 """
 
 
-class RecognitionListener():
+class RecognitionListener:
     """
     Class with callback methods called in certain recognition states.
 
     You should subclass this class, reimplementing methods which you wish
     to add functionality.
     """
+
     def on_listening(self):
         """
         Called when recognition enters on Listening state, i.e. when the
