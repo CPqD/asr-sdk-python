@@ -82,7 +82,6 @@ def usage():
 
 
 if __name__ == "__main__":
-    ostream = open("log.txt", "a")
     argc = len(argv)
     if argc != 3 and argc != 5:
         usage()
@@ -98,13 +97,7 @@ if __name__ == "__main__":
     if argc == 5:
         credentials = (argv[3], argv[4])
 
-    asr = SpeechRecognizer(
-        url,
-        credentials=credentials,
-        log_stream=ostream,
-        listener=PrinterListener(),
-        log_level="warning",
-    )
+    asr = SpeechRecognizer(url, credentials=credentials, listener=PrinterListener(),)
 
     with MicAudioSource() as mic:
         try:

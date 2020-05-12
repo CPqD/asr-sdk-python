@@ -21,7 +21,7 @@ Created on Wed Jan  3 10:07:49 2018
 Stability tests, which take a while to run.
 """
 from cpqdasr import LanguageModelList
-from .config import url, credentials, log_level
+from .config import url, credentials
 from .config import slm, pizza_grammar_path, pizza_wav, gibberish_wav
 from .common import stress_recognition
 
@@ -67,81 +67,57 @@ def test_grammar_match():
     lm = LanguageModelList(
         LanguageModelList.grammarFromPath("pizza", pizza_grammar_path)
     )
-    with open("testGrammarMatch.log", "w") as f:
-        stress_recognition(
-            url,
-            {
-                "credentials": credentials,
-                "log_level": log_level,
-                "max_wait_seconds": 600,
-                "log_stream": f,
-            },
-            pizza_wav,
-            lm,
-            (0, 25),
-            10,
-            10,
-            assertion=expect_success_assertion,
-        )
+    stress_recognition(
+        url,
+        {"credentials": credentials, "max_wait_seconds": 600},
+        pizza_wav,
+        lm,
+        (0, 25),
+        10,
+        10,
+        assertion=expect_success_assertion,
+    )
 
 
 def test_grammar_nomatch():
     lm = LanguageModelList(
         LanguageModelList.grammarFromPath("pizza", pizza_grammar_path)
     )
-    with open("testGrammarNoMatch.log", "w") as f:
-        stress_recognition(
-            url,
-            {
-                "credentials": credentials,
-                "log_level": log_level,
-                "max_wait_seconds": 600,
-                "log_stream": f,
-            },
-            gibberish_wav,
-            lm,
-            (0, 25),
-            10,
-            10,
-            assertion=expect_failure_assertion,
-        )
+    stress_recognition(
+        url,
+        {"credentials": credentials, "max_wait_seconds": 600},
+        gibberish_wav,
+        lm,
+        (0, 25),
+        10,
+        10,
+        assertion=expect_failure_assertion,
+    )
 
 
 def test_slm_match():
     lm = LanguageModelList(slm)
-    with open("testSlmMatch.log", "w") as f:
-        stress_recognition(
-            url,
-            {
-                "credentials": credentials,
-                "log_level": log_level,
-                "max_wait_seconds": 600,
-                "log_stream": f,
-            },
-            pizza_wav,
-            lm,
-            (0, 25),
-            10,
-            10,
-            assertion=expect_success_assertion,
-        )
+    stress_recognition(
+        url,
+        {"credentials": credentials, "max_wait_seconds": 600},
+        pizza_wav,
+        lm,
+        (0, 25),
+        10,
+        10,
+        assertion=expect_success_assertion,
+    )
 
 
 def test_slm_nomatch():
     lm = LanguageModelList(slm)
-    with open("testSlmNoMatch.log", "w") as f:
-        stress_recognition(
-            url,
-            {
-                "credentials": credentials,
-                "log_level": log_level,
-                "max_wait_seconds": 600,
-                "log_stream": f,
-            },
-            gibberish_wav,
-            lm,
-            (0, 25),
-            10,
-            10,
-            assertion=expect_failure_assertion,
-        )
+    stress_recognition(
+        url,
+        {"credentials": credentials, "max_wait_seconds": 600,},
+        gibberish_wav,
+        lm,
+        (0, 25),
+        10,
+        10,
+        assertion=expect_failure_assertion,
+    )

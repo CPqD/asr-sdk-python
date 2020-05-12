@@ -22,8 +22,8 @@ from time import time
 from sys import stderr
 from threading import Condition
 from ws4py.client.threadedclient import WebSocketClient
+import logging
 
-from ..logger import Logger
 from ..recognizer.listener import RecognitionListener
 from ..recognizer.result import RecognitionResult, PartialRecognitionResult
 from .protocol import (
@@ -46,7 +46,6 @@ class ASRClient(WebSocketClient):
         listener=RecognitionListener(),
         user_agent=None,
         config=None,
-        logger=Logger(stderr),
         debug=False,
         protocols=None,
         extensions=None,
@@ -65,7 +64,7 @@ class ASRClient(WebSocketClient):
         self._user_agent = user_agent
         self._listener = listener
         self._config = config
-        self._logger = logger
+        self._logger = logging.getLogger("cpqdasr")
         self._status = "DISCONNECTED"
         self._cv_define_grammar = cv_define_grammar
         self._time_define_grammar = 0

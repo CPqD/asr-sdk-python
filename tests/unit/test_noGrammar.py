@@ -21,13 +21,10 @@ Tests with statistical language models
 from cpqdasr import SpeechRecognizer, LanguageModelList
 from cpqdasr import FileAudioSource
 from .config import url, credentials, slm, phone_wav, silence_wav
-from .config import log_level, log_path
 
 
 asr_kwargs = {
     "credentials": credentials,
-    "log_level": log_level,
-    "log_stream": open(log_path, "w"),
 }
 
 

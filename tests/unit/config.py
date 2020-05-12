@@ -19,7 +19,7 @@ url = "ws://localhost:8025/asr-server/asr"
 credentials = ("", "")
 log_level = "warning"  # "error", "warning", "info" or "debug"
 log_path = "/tmp/asr-sdk-python-test.log"
-slm = "builtin:slm/general"
+slm = "builtin:slm/callcenter-small"
 phone_grammar_uri = "builtin:grammar/phone"
 
 # Resource config

@@ -22,7 +22,7 @@ from cpqdasr import RecognitionException
 from cpqdasr import SpeechRecognizer, LanguageModelList
 from cpqdasr import FileAudioSource
 from .config import url, credentials, phone_wav, silence_wav, yes_wav
-from .config import log_level, log_path, phone_grammar_uri, yes_grammar_path
+from .config import phone_grammar_uri, yes_grammar_path
 import soundfile as sf
 import time
 
@@ -32,8 +32,6 @@ import time
 # =============================================================================
 asr_kwargs = {
     "credentials": credentials,
-    "log_level": log_level,
-    "log_stream": open(log_path, "a"),
 }
 
 

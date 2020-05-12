@@ -48,7 +48,6 @@ def usage():
 
 
 if __name__ == "__main__":
-    ostream = open("log.txt", "a")
     argc = len(argv)
     if argc != 4 and argc != 6:
         usage()
@@ -63,18 +62,12 @@ if __name__ == "__main__":
     if argc == 6:
         credentials = (argv[4], argv[5])
 
-    asr = SpeechRecognizer(
-        url,
-        credentials=credentials,
-        log_stream=ostream,
-        log_level="debug",
-        max_wait_seconds=600,
-    )
+    asr = SpeechRecognizer(url, credentials=credentials, max_wait_seconds=600,)
     asr.recognize(FileAudioSource(apath), lm)
     res = asr.wait_recognition_result()
     if res:
         for k in res:
             print(k.alternatives)
     else:
-        print("Empty result! Check log.txt for more info.")
+        print("Empty result!")
     asr.close()

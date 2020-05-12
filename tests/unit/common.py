@@ -42,7 +42,6 @@ def stress_recognition(
     session_range=(0, 1),
     recognitions=1,
     executions=1,
-    log_stream=stdout,
     assertion=lambda x: (True, ""),
 ):
     """
@@ -62,8 +61,6 @@ def stress_recognition(
     :executions:    Number of executions to be run with each worker. The
                     execution involves the full process of creating and
                     destroying SpeechRecognizer instances inside each worker.
-    :log_stream:    The stream (usually system streams or open files on write
-                    mode) for writing the SpeechRecognizer logs.
     :assertion:     A function which receives a list  RecognitionResult and
                     returns a tuple of bool/string depending on the criterion
                     of success for the running test and the intended message

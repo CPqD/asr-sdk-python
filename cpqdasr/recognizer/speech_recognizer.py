@@ -23,9 +23,9 @@ from sys import stderr
 from threading import Condition, Thread
 from base64 import b64encode
 from time import time
+import logging
 import copy
 
-from cpqdasr.logger import Logger
 from cpqdasr.recognizer_protocol import WS4PYClient
 from cpqdasr.recognizer_protocol import (
     send_audio_msg,
@@ -69,7 +69,6 @@ class SpeechRecognizer:
         max_wait_seconds=30,
         connect_on_recognize=False,
         auto_close=False,
-        log_level="warning",
     ):
         assert audio_sample_rate in [8000, 16000]
         assert audio_encoding in ["pcm", "wav", "raw"]
@@ -85,7 +84,7 @@ class SpeechRecognizer:
         self._max_wait_seconds = max_wait_seconds
         self._connect_on_recognize = connect_on_recognize
         self._auto_close = auto_close
-        self._logger = Logger(log_stream, alias, log_level)
+        self._logger = logging.getLogger("cpqdasr")
         self._cv_define_grammar = Condition()
         self._cv_create_session = Condition()
         self._cv_send_audio = Condition()
@@ -123,7 +122,6 @@ class SpeechRecognizer:
                 listener=self._listener,
                 user_agent=self._user_agent,
                 config=self._session_config,
-                logger=self._logger,
                 headers=headers,
             )
             self._ws.connect()
@@ -137,7 +135,7 @@ class SpeechRecognizer:
                 b = next(self._audio_source)
             except StopIteration:
                 self._logger.warning("Empty audio source!")
-                self._ws.send(send_audio_msg(b'', True), binary=True)
+                self._ws.send(send_audio_msg(b"", True), binary=True)
                 return
             self._ws._time_wait_recog = time()
             for x in self._audio_source:
@@ -152,7 +150,6 @@ class SpeechRecognizer:
                 b = x
             self._ws.send(send_audio_msg(b, True), binary=True)
             self._logger.debug("Send audio")
-
 
     def _disconnect(self):
         if self._ws is not None:

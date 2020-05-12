@@ -26,16 +26,11 @@ from cpqdasr import (
     BufferAudioSource,
 )
 from .config import url, credentials, slm, phone_wav
-from .config import log_level, log_path
 
 import soundfile as sf
 
 
-asr_kwargs = {
-    "credentials": credentials,
-    "log_level": log_level,
-    "log_stream": open(log_path, "w"),
-}
+asr_kwargs = {"credentials": credentials}
 
 
 # =============================================================================
