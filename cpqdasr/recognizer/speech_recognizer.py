@@ -133,20 +133,26 @@ class SpeechRecognizer:
             while self._ws.status not in ["LISTENING", "NO_INPUT_TIMEOUT", "ABORTED"]:
                 self._logger.debug("Waiting for send audio notify")
                 self._cv_send_audio.wait(0.5)  # Break loop as soon as ready
-            bytes = next(self._audio_source)
+            try:
+                b = next(self._audio_source)
+            except StopIteration:
+                self._logger.warning("Empty audio source!")
+                self._ws.send(send_audio_msg(b'', True), binary=True)
+                return
             self._ws._time_wait_recog = time()
             for x in self._audio_source:
                 if self._ws.status != "LISTENING":
-                    bytes = x
+                    b = x
                     break
                 if self._join_thread:
-                    bytes = x
+                    b = x
                     break
-                self._ws.send(send_audio_msg(bytes, False), binary=True)
+                self._ws.send(send_audio_msg(b, False), binary=True)
                 self._logger.debug("Send audio")
-                bytes = x
-            self._ws.send(send_audio_msg(bytes, True), binary=True)
+                b = x
+            self._ws.send(send_audio_msg(b, True), binary=True)
             self._logger.debug("Send audio")
+
 
     def _disconnect(self):
         if self._ws is not None:
@@ -241,7 +247,7 @@ class SpeechRecognizer:
         self._join_thread = True
         self._send_audio_thread.join(self._max_wait_seconds)
         self._join_thread = False
-        if self._send_audio_thread.isAlive():
+        if self._send_audio_thread.is_alive():
             self._logger.warning(
                 "Send audio thread join timeout after "
                 "{} seconds".format(self._max_wait_seconds)
