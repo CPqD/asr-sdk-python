@@ -69,6 +69,7 @@ class SpeechRecognizer:
         max_wait_seconds=30,
         connect_on_recognize=False,
         auto_close=False,
+        _wav=True
     ):
         assert audio_sample_rate in [8000, 16000]
         assert audio_encoding in ["pcm", "wav", "raw"]
@@ -145,7 +146,7 @@ class SpeechRecognizer:
                 if self._join_thread:
                     b = x
                     break
-                self._ws.send(send_audio_msg(b, False), binary=True)
+                self._ws.send(send_audio_msg(b, False, self._wav), binary=True)
                 self._logger.debug("Send audio")
                 b = x
             self._ws.send(send_audio_msg(b, True), binary=True)
@@ -203,7 +204,8 @@ class SpeechRecognizer:
                     self.close()
                 return ret
 
-    def recognize(self, audio_source, lm_list, config=None):
+    def recognize(self, audio_source, lm_list, config=None, wav=True):
+        self._wav = wav
         assert isinstance(lm_list, LanguageModelList)
         if self._ws is None:
             self._connect()

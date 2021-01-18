@@ -61,9 +61,13 @@ if __name__ == "__main__":
     credentials = ("", "")
     if argc == 6:
         credentials = (argv[4], argv[5])
+    print(apath[-4:])
+    wav = True
+    if apath[-4:] == ".raw":
+        wav = False
 
     asr = SpeechRecognizer(url, credentials=credentials, max_wait_seconds=600,)
-    asr.recognize(FileAudioSource(apath), lm)
+    asr.recognize(FileAudioSource(apath), lm, wav=wav)
     res = asr.wait_recognition_result()
     if res:
         for k in res:
