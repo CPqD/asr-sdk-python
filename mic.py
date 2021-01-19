@@ -101,13 +101,13 @@ if __name__ == "__main__":
 
     with MicAudioSource() as mic:
         try:
-            asr.recognize(mic, lm)
+            asr.recognize(mic, lm, wav=False)
             result = asr.wait_recognition_result()
             if result:
-                if result[0].resultCode == "RECOGNIZED":
+                if result[0].result_code == "RECOGNIZED":
                     print(result[0].alternatives[0]["text"])
                 else:
-                    print(result[0].resultCode)
+                    print(result[0].result_code)
         except KeyboardInterrupt:
             print("Caught interrupt. Closing ASR instance...", file=stderr)
             try:
