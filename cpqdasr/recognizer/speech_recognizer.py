@@ -69,7 +69,7 @@ class SpeechRecognizer:
         max_wait_seconds=30,
         connect_on_recognize=False,
         auto_close=False,
-        _wav=True
+        _wav=True,
     ):
         assert audio_sample_rate in [8000, 16000]
         assert audio_encoding in ["pcm", "wav", "raw"]

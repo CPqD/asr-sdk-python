@@ -63,7 +63,11 @@ if __name__ == "__main__":
     if argc == 6:
         credentials = (argv[4], argv[5])
 
-    asr = SpeechRecognizer(url, credentials=credentials, max_wait_seconds=600,)
+    asr = SpeechRecognizer(
+        url,
+        credentials=credentials,
+        max_wait_seconds=600,
+    )
 
     source = BufferAudioSource()
     asr.recognize(source, lm)

@@ -25,7 +25,13 @@ from ws4py.client.threadedclient import WebSocketClient
 import logging
 
 from ..recognizer.listener import RecognitionListener
-from ..recognizer.result import RecognitionResult, PartialRecognitionResult, AgeResult, GenderResponse, EmotionResponse
+from ..recognizer.result import (
+    RecognitionResult,
+    PartialRecognitionResult,
+    AgeResult,
+    GenderResponse,
+    EmotionResponse,
+)
 from .protocol import (
     create_session_msg,
     set_parameters_msg,
@@ -36,22 +42,22 @@ from .protocol import (
 
 class ASRClient(WebSocketClient):
     def __init__(
-            self,
-            url,
-            cv_define_grammar,
-            cv_create_session,
-            cv_send_audio,
-            cv_wait_recog,
-            cv_wait_cancel,
-            listener=RecognitionListener(),
-            user_agent=None,
-            config=None,
-            debug=False,
-            protocols=None,
-            extensions=None,
-            heartbeat_freq=None,
-            ssl_options=None,
-            headers=None,
+        self,
+        url,
+        cv_define_grammar,
+        cv_create_session,
+        cv_send_audio,
+        cv_wait_recog,
+        cv_wait_cancel,
+        listener=RecognitionListener(),
+        user_agent=None,
+        config=None,
+        debug=False,
+        protocols=None,
+        extensions=None,
+        heartbeat_freq=None,
+        ssl_options=None,
+        headers=None,
     ):
         super(ASRClient, self).__init__(
             url, protocols, extensions, heartbeat_freq, ssl_options, headers
@@ -259,13 +265,13 @@ class ASRClient(WebSocketClient):
                     gender_scores = GenderResponse(
                         event=b["gender_scores"]["event"],
                         p=b["gender_scores"]["p"],
-                        gender=b["gender_scores"]["gender"]
+                        gender=b["gender_scores"]["gender"],
                     )
                 if "emotion_scores" in b:
                     emotion_scores = EmotionResponse(
                         event=b["emotion_scores"]["event"],
                         p=b["emotion_scores"]["p"],
-                        emotion=b["emotion_scores"]["emotion"]
+                        emotion=b["emotion_scores"]["emotion"],
                     )
                 else:
                     last_segment = True
@@ -279,7 +285,7 @@ class ASRClient(WebSocketClient):
                         alternatives=result,
                         age_scores=age_scores,
                         gender_scores=gender_scores,
-                        emotion_scores=emotion_scores
+                        emotion_scores=emotion_scores,
                     )
                 )
                 self._listener.on_recognition_result(b)

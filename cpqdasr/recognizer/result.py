@@ -30,15 +30,7 @@ class PartialRecognitionResult:
 
 
 class AgeResult:
-    def __init__(
-            self,
-            event,
-            age,
-            p,
-            age_50,
-            age_80,
-            age_99
-    ):
+    def __init__(self, event, age, p, age_50, age_80, age_99):
         self.event = event
         self.age = age
         self.p = p
@@ -48,24 +40,14 @@ class AgeResult:
 
 
 class GenderResponse:
-    def __init__(
-            self,
-            event,
-            p,
-            gender
-    ):
+    def __init__(self, event, p, gender):
         self.event = event
         self.p = p
         self.gender = gender
 
 
 class EmotionResponse:
-    def __init__(
-            self,
-            p,
-            event,
-            emotion
-    ):
+    def __init__(self, p, event, emotion):
         self.p = p
         self.event = event
         self.emotion = emotion
@@ -73,16 +55,16 @@ class EmotionResponse:
 
 class RecognitionResult:
     def __init__(
-            self,
-            result_code,
-            speech_segment_index,
-            last_speech_segment,
-            sentence_start_time_milliseconds,
-            sentence_end_time_milliseconds,
-            alternatives,
-            age_scores=None,
-            gender_scores=None,
-            emotion_scores=None
+        self,
+        result_code,
+        speech_segment_index,
+        last_speech_segment,
+        sentence_start_time_milliseconds,
+        sentence_end_time_milliseconds,
+        alternatives,
+        age_scores=None,
+        gender_scores=None,
+        emotion_scores=None,
     ):
         assert type(result_code) is str
         assert type(speech_segment_index) is int

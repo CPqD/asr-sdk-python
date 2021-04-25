@@ -72,7 +72,11 @@ if __name__ == "__main__":
     if apath[-4:] == ".raw":
         wav = False
 
-    asr = SpeechRecognizer(url, credentials=credentials, max_wait_seconds=600, )
+    asr = SpeechRecognizer(
+        url,
+        credentials=credentials,
+        max_wait_seconds=600,
+    )
     asr.recognize(FileAudioSource(apath), lm, wav=wav, config=config)
     res = asr.wait_recognition_result()
     if res:

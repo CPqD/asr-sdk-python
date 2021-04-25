@@ -97,7 +97,11 @@ if __name__ == "__main__":
     if argc == 5:
         credentials = (argv[3], argv[4])
 
-    asr = SpeechRecognizer(url, credentials=credentials, listener=PrinterListener(),)
+    asr = SpeechRecognizer(
+        url,
+        credentials=credentials,
+        listener=PrinterListener(),
+    )
 
     with MicAudioSource() as mic:
         try:
