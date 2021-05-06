@@ -21,7 +21,7 @@ ASR Server WebSocket API message builders/parsers
 import json
 
 
-VERSION = "ASR 2.3"
+VERSION = "ASR 2.4"
 
 
 def create_session_msg(user_agent=None):
