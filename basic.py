@@ -21,8 +21,9 @@ Basic example with an audio file input.
 """
 from cpqdasr import SpeechRecognizer, LanguageModelList
 from cpqdasr import FileAudioSource
-from sys import argv
+from sys import argv, exit
 import os
+import getopt
 
 config = {
     "Infer-age-enabled": False,
@@ -30,10 +31,9 @@ config = {
     "Infer-emotion-enabled": False,
 }
 
-
-def usage():
+def usage(error = 0):
     print(
-        "Usage: {} <ws_url> <lang_uri_or_path> <wav_path> [ <user> <password> ]".format(
+        "Usage: {} -w <ws_url> -l <lang_uri_or_path> -a <wav_path> [ -u <user> -p <password> -v <parameter=value> ]".format(
             argv[0]
         )
     )
@@ -50,27 +50,70 @@ def usage():
         "  eg3: {} ws://127.0.0.1:8025/asr-server/asr "
         "/path/to/my/grammar /path/to/audio.wav".format(argv[0])
     )
-    exit()
+    print(
+        "   eg4: {} ws://127.0.0.1:8000/ws/v1/recognize "
+        "builtin:grammar/samples/phone /path/to/audio.wav "
+        "-v Infer-age-enabled=true".format(argv[0])
+    )
+    exit(error)
 
 
 if __name__ == "__main__":
-    argc = len(argv)
-    if argc != 4 and argc != 6:
-        usage()
+    url = ""
+    apath = ""
+    lang_uri_or_path = ""
+    user = ""
+    password = ""
+    pars = {}
+    try:
+        opts, args = getopt.getopt(argv[1:], "hw:l:a:u:p:v:")
+    except getopt.GetoptError:
+        usage(1)
 
-    url = argv[1]
-    if os.path.isfile(argv[2]):
-        lm = LanguageModelList(LanguageModelList.grammar_from_path("asdasdas", argv[2]))
+    print("\nOptions:")
+    for opt, arg in opts:
+        if opt == "-w":
+            url = arg
+            print("URL= {}".format(url))
+        elif opt == "-l":
+            lang_uri_or_path = arg
+            print("Language= {}".format(lang_uri_or_path))
+        elif opt == "-a":
+            apath = arg
+            print("Audio path= {}".format(apath))
+        elif opt == "-u":
+            user = arg
+            print("User {}".format(user))
+        elif opt == "-v":
+            v = arg.split("=")
+            pars[v[0]] = v[1]
+        elif opt == "-p":
+            password = arg
+            print("User {}".format(password))
+        elif opt == "-h":
+            usage(0)
+
+    if len(url) == 0 or len(lang_uri_or_path) == 0 or len(apath) == 0:
+        usage(2)
+
+    if os.path.isfile(lang_uri_or_path):
+        lm = LanguageModelList(LanguageModelList.grammar_from_path("asdasdas", lang_uri_or_path))
     else:
-        lm = LanguageModelList(LanguageModelList.from_uri(argv[2]))
-    apath = argv[3]
+        lm = LanguageModelList(LanguageModelList.from_uri(lang_uri_or_path))
     credentials = ("", "")
-    if argc == 6:
-        credentials = (argv[4], argv[5])
-    print(apath[-4:])
+    if len(user) and len(password):
+        credentials = (user, password)
+
     wav = True
     if apath[-4:] == ".raw":
         wav = False
+
+    if (wav):
+        print("Recognizing audio with header")
+
+    if len(pars):
+        config = pars
+        print("Recognition parameters: {}".format(pars))
 
     asr = SpeechRecognizer(
         url,
@@ -79,9 +122,17 @@ if __name__ == "__main__":
     )
     asr.recognize(FileAudioSource(apath), lm, wav=wav, config=config)
     res = asr.wait_recognition_result()
+
     if res:
+        print("\nResults:")
         for k in res:
             print(k.alternatives)
+            if (k.age_scores.age != None):
+                print("Event {}: {} years old".format(k.age_scores.event, k.age_scores.age))
+            if (k.gender_scores.gender != None):
+                print("Event {}: {}".format(k.gender_scores.event, k.gender_scores.gender))
+            if (k.emotion_scores.emotion != None):
+                print("Emotion {}: {}".format(k.emotion_scores.event, k.emotion_scores.emotion))
     else:
-        print("Empty result!")
+        print("\nEmpty result!")
     asr.close()
