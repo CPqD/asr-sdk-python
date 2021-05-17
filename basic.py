@@ -38,21 +38,21 @@ def usage(error = 0):
         )
     )
     print(
-        "   eg: {} ws://127.0.0.1:8025/asr-server/asr "
-        "builtin:grammar/samples/phone /path/to/audio.wav".format(argv[0])
+        "   eg: {} -w ws://127.0.0.1:8025/asr-server/asr "
+        "-l builtin:grammar/samples/phone -a /path/to/audio.wav".format(argv[0])
     )
     print(
-        "  eg2: {} wss://contact/cpqd/and/request/a/key/ "
-        "builtin:slm/general /path/to/audio.wav "
-        "myusername mypassword".format(argv[0])
+        "  eg2: {} -w ws://contact/cpqd/and/request/a/key/ "
+        "-l builtin:slm/general -a /path/to/audio.wav "
+        "-u myusername -p mypassword".format(argv[0])
     )
     print(
-        "  eg3: {} ws://127.0.0.1:8025/asr-server/asr "
-        "/path/to/my/grammar /path/to/audio.wav".format(argv[0])
+        "  eg3: {} -w ws://127.0.0.1:8025/asr-server/asr "
+        "-l /path/to/my/grammar -a /path/to/audio.wav".format(argv[0])
     )
     print(
-        "   eg4: {} ws://127.0.0.1:8000/ws/v1/recognize "
-        "builtin:grammar/samples/phone /path/to/audio.wav "
+        "   eg4: {} -w ws://127.0.0.1:8000/ws/v1/recognize/ "
+        "-l builtin:grammar/samples/phone -a /path/to/audio.wav "
         "-v Infer-age-enabled=true".format(argv[0])
     )
     exit(error)
