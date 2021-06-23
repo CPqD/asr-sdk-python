@@ -25,7 +25,13 @@ from ws4py.client.threadedclient import WebSocketClient
 import logging
 
 from ..recognizer.listener import RecognitionListener
-from ..recognizer.result import RecognitionResult, PartialRecognitionResult
+from ..recognizer.result import (
+    RecognitionResult,
+    PartialRecognitionResult,
+    AgeResponse,
+    GenderResponse,
+    EmotionResponse,
+)
 from .protocol import (
     create_session_msg,
     set_parameters_msg,
@@ -132,6 +138,9 @@ class ASRClient(WebSocketClient):
         # Parsing and returning error if bad response
         self._logger.debug(msg.data)
         call, h, b = parse_response(msg)
+        age_scores = AgeResponse()
+        gender_scores = GenderResponse()
+        emotion_scores = EmotionResponse()
         if call not in [
             "RESPONSE",
             "START_OF_SPEECH",
@@ -243,6 +252,27 @@ class ASRClient(WebSocketClient):
                     result = []
                 if "last_segment" in b:
                     last_segment = b["last_segment"]
+                if "age_scores" in b:
+                    age_scores = AgeResponse(
+                        event=b["age_scores"]["event"],
+                        age=b["age_scores"]["age"],
+                        p=b["age_scores"]["p"],
+                        age_50=b["age_scores"]["age_50"],
+                        age_80=b["age_scores"]["age_80"],
+                        age_99=b["age_scores"]["age_99"],
+                    )
+                if "gender_scores" in b:
+                    gender_scores = GenderResponse(
+                        event=b["gender_scores"]["event"],
+                        p=b["gender_scores"]["p"],
+                        gender=b["gender_scores"]["gender"],
+                    )
+                if "emotion_scores" in b:
+                    emotion_scores = EmotionResponse(
+                        event=b["emotion_scores"]["event"],
+                        p=b["emotion_scores"]["p"],
+                        emotion=b["emotion_scores"]["emotion"],
+                    )
                 else:
                     last_segment = True
                 self.recognition_list.append(
@@ -253,6 +283,9 @@ class ASRClient(WebSocketClient):
                         sentence_start_time_milliseconds=0,
                         sentence_end_time_milliseconds=0,
                         alternatives=result,
+                        age_scores=age_scores,
+                        gender_scores=gender_scores,
+                        emotion_scores=emotion_scores,
                     )
                 )
                 self._listener.on_recognition_result(b)

@@ -24,6 +24,12 @@ from cpqdasr import FileAudioSource
 from sys import argv
 import os
 
+config = {
+    "Infer-age-enabled": False,
+    "Infer-gender-enabled": False,
+    "Infer-emotion-enabled": False,
+}
+
 
 def usage():
     print(
@@ -61,9 +67,17 @@ if __name__ == "__main__":
     credentials = ("", "")
     if argc == 6:
         credentials = (argv[4], argv[5])
+    print(apath[-4:])
+    wav = True
+    if apath[-4:] == ".raw":
+        wav = False
 
-    asr = SpeechRecognizer(url, credentials=credentials, max_wait_seconds=600,)
-    asr.recognize(FileAudioSource(apath), lm)
+    asr = SpeechRecognizer(
+        url,
+        credentials=credentials,
+        max_wait_seconds=600,
+    )
+    asr.recognize(FileAudioSource(apath), lm, wav=wav, config=config)
     res = asr.wait_recognition_result()
     if res:
         for k in res:

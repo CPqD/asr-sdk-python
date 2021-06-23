@@ -29,6 +29,32 @@ class PartialRecognitionResult:
         self.text = text
 
 
+class AgeResponse:
+    def __init__(
+        self, event=None, age=None, p=None, age_50=None, age_80=None, age_99=None
+    ):
+        self.event = event
+        self.age = age
+        self.p = p
+        self.age_50 = age_50
+        self.age_80 = age_80
+        self.age_99 = age_99
+
+
+class GenderResponse:
+    def __init__(self, event=None, p=None, gender=None):
+        self.event = event
+        self.p = p
+        self.gender = gender
+
+
+class EmotionResponse:
+    def __init__(self, p=None, event=None, emotion=None):
+        self.p = p
+        self.event = event
+        self.emotion = emotion
+
+
 class RecognitionResult:
     def __init__(
         self,
@@ -38,6 +64,9 @@ class RecognitionResult:
         sentence_start_time_milliseconds,
         sentence_end_time_milliseconds,
         alternatives,
+        age_scores=None,
+        gender_scores=None,
+        emotion_scores=None,
     ):
         assert type(result_code) is str
         assert type(speech_segment_index) is int
@@ -51,3 +80,6 @@ class RecognitionResult:
         self.sentence_start_time_milliseconds = sentence_start_time_milliseconds
         self.sentence_end_time_milliseconds = sentence_end_time_milliseconds
         self.alternatives = alternatives
+        self.age_scores = age_scores
+        self.gender_scores = gender_scores
+        self.emotion_scores = emotion_scores

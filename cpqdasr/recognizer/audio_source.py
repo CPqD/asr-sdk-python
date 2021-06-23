@@ -92,10 +92,11 @@ def FileAudioSource(path, chunk_size=4096):
 
     Terminates when the audio file provided has no more content
     """
-    for block in sf.blocks(path, chunk_size):
-        # Soundfile converts to 64-bit float ndarray. We convert back to bytes
-        bytestr = (block * 2 ** 15).astype("<i2").tobytes()
+    f = open(path, "rb")
+    bytestr = f.read(chunk_size)
+    while bytestr:
         yield bytestr
+        bytestr = f.read(chunk_size)
 
 
 class BufferAudioSource:

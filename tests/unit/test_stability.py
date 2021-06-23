@@ -113,7 +113,10 @@ def test_slm_nomatch():
     lm = LanguageModelList(slm)
     stress_recognition(
         url,
-        {"credentials": credentials, "max_wait_seconds": 600,},
+        {
+            "credentials": credentials,
+            "max_wait_seconds": 600,
+        },
         gibberish_wav,
         lm,
         (0, 25),

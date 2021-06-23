@@ -21,7 +21,7 @@ ASR Server WebSocket API message builders/parsers
 import json
 
 
-VERSION = "ASR 2.3"
+VERSION = "ASR 2.4"
 
 
 def create_session_msg(user_agent=None):
@@ -66,7 +66,7 @@ def start_recog_msg(uri_list, config):
     return msg
 
 
-def send_audio_msg(payload, last=False):
+def send_audio_msg(payload, last=False, audio_wav=True):
     """
     Payload should be a valid bytestring representing a raw waveform. Every
     2 bytes (16bit) should represent a little-endian sample.
@@ -80,7 +80,10 @@ def send_audio_msg(payload, last=False):
 
     # Brackets are a placeholder for payload size
     msg += "Content-Length: {}\n"
-    msg += "Content-Type: application/octet-stream\n\n"
+    if audio_wav:
+        msg += "Content-Type: audio/wav\n\n"
+    else:
+        msg += "Content-Type: audio/raw\n\n"
 
     # Adding payload size and converting to binary
     msg = msg.format(len(payload)).encode()
