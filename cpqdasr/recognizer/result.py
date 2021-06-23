@@ -29,8 +29,10 @@ class PartialRecognitionResult:
         self.text = text
 
 
-class AgeResult:
-    def __init__(self, event, age, p, age_50, age_80, age_99):
+class AgeResponse:
+    def __init__(
+        self, event=None, age=None, p=None, age_50=None, age_80=None, age_99=None
+    ):
         self.event = event
         self.age = age
         self.p = p
@@ -40,14 +42,14 @@ class AgeResult:
 
 
 class GenderResponse:
-    def __init__(self, event, p, gender):
+    def __init__(self, event=None, p=None, gender=None):
         self.event = event
         self.p = p
         self.gender = gender
 
 
 class EmotionResponse:
-    def __init__(self, p, event, emotion):
+    def __init__(self, p=None, event=None, emotion=None):
         self.p = p
         self.event = event
         self.emotion = emotion

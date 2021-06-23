@@ -28,7 +28,7 @@ from ..recognizer.listener import RecognitionListener
 from ..recognizer.result import (
     RecognitionResult,
     PartialRecognitionResult,
-    AgeResult,
+    AgeResponse,
     GenderResponse,
     EmotionResponse,
 )
@@ -138,9 +138,9 @@ class ASRClient(WebSocketClient):
         # Parsing and returning error if bad response
         self._logger.debug(msg.data)
         call, h, b = parse_response(msg)
-        age_scores = None
-        gender_scores = None
-        emotion_scores = None
+        age_scores = AgeResponse()
+        gender_scores = GenderResponse()
+        emotion_scores = EmotionResponse()
         if call not in [
             "RESPONSE",
             "START_OF_SPEECH",
@@ -253,7 +253,7 @@ class ASRClient(WebSocketClient):
                 if "last_segment" in b:
                     last_segment = b["last_segment"]
                 if "age_scores" in b:
-                    age_scores = AgeResult(
+                    age_scores = AgeResponse(
                         event=b["age_scores"]["event"],
                         age=b["age_scores"]["age"],
                         p=b["age_scores"]["p"],
