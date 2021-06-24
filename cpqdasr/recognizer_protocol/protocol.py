@@ -65,6 +65,10 @@ def start_recog_msg(uri_list, config):
     msg += langs.encode()
     return msg
 
+def start_input_timers_msg():
+    msg = "{} START_INPUT_TIMERS\n".format(VERSION)
+    msg = msg.encode()
+    return msg
 
 def send_audio_msg(payload, last=False, audio_wav=True):
     """
