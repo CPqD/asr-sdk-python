@@ -47,9 +47,8 @@ class GenderResponse:
 
 
 class EmotionResponse:
-    def __init__(self, p=None, event=None, emotion=None, end_byte=None, p_groups=None):
+    def __init__(self, p=None, event=None, emotion=None, p_groups=None):
         self.emotion = emotion
-        self.end_byte = end_byte
         self.event = event
         self.p = p
         self.p_groups = p_groups

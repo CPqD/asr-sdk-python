@@ -270,7 +270,6 @@ class ASRClient(WebSocketClient):
                         event=b["emotion_scores"]["event"],
                         p=b["emotion_scores"]["p"],
                         emotion=b["emotion_scores"]["emotion"],
-                        end_byte=b["emotion_scores"]["end_byte"],
                         p_groups=b["emotion_scores"]["p_groups"]
                     )
                 else:
