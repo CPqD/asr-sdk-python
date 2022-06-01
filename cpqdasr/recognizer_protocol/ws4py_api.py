@@ -257,9 +257,7 @@ class ASRClient(WebSocketClient):
                         event=b["age_scores"]["event"],
                         age=b["age_scores"]["age"],
                         p=b["age_scores"]["p"],
-                        age_50=b["age_scores"]["age_50"],
-                        age_80=b["age_scores"]["age_80"],
-                        age_99=b["age_scores"]["age_99"],
+                        confidence=b["age_scores"]["confidence"]
                     )
                 if "gender_scores" in b:
                     gender_scores = GenderResponse(
@@ -272,6 +270,7 @@ class ASRClient(WebSocketClient):
                         event=b["emotion_scores"]["event"],
                         p=b["emotion_scores"]["p"],
                         emotion=b["emotion_scores"]["emotion"],
+                        p_groups=b["emotion_scores"]["p_groups"]
                     )
                 else:
                     last_segment = True

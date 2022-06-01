@@ -31,42 +31,42 @@ class PartialRecognitionResult:
 
 class AgeResponse:
     def __init__(
-        self, event=None, age=None, p=None, age_50=None, age_80=None, age_99=None
+            self, event=None, age=None, confidence=None, p=None
     ):
-        self.event = event
         self.age = age
+        self.event = event
+        self.confidence = confidence
         self.p = p
-        self.age_50 = age_50
-        self.age_80 = age_80
-        self.age_99 = age_99
 
 
 class GenderResponse:
     def __init__(self, event=None, p=None, gender=None):
         self.event = event
-        self.p = p
         self.gender = gender
+        self.p = p
 
 
 class EmotionResponse:
-    def __init__(self, p=None, event=None, emotion=None):
-        self.p = p
-        self.event = event
+    def __init__(self, p=None, event=None, emotion=None, p_groups=None):
         self.emotion = emotion
+        self.event = event
+        self.p = p
+        self.p_groups = p_groups
+
 
 
 class RecognitionResult:
     def __init__(
-        self,
-        result_code,
-        speech_segment_index,
-        last_speech_segment,
-        sentence_start_time_milliseconds,
-        sentence_end_time_milliseconds,
-        alternatives,
-        age_scores=None,
-        gender_scores=None,
-        emotion_scores=None,
+            self,
+            result_code,
+            speech_segment_index,
+            last_speech_segment,
+            sentence_start_time_milliseconds,
+            sentence_end_time_milliseconds,
+            alternatives,
+            age_scores=None,
+            gender_scores=None,
+            emotion_scores=None,
     ):
         assert type(result_code) is str
         assert type(speech_segment_index) is int
