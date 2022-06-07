@@ -29,9 +29,11 @@ config = {
     "Infer-age-enabled": False,
     "Infer-gender-enabled": False,
     "Infer-emotion-enabled": False,
+    "Verify-Buffer-Utterance": False,
 }
 
-def usage(error = 0):
+
+def usage(error=0):
     print(
         "Usage: {} -w <ws_url> -l <lang_uri_or_path> -a <wav_path> [ -u <user> -p <password> -v <parameter=value> ]".format(
             argv[0]
@@ -97,7 +99,9 @@ if __name__ == "__main__":
         usage(2)
 
     if os.path.isfile(lang_uri_or_path):
-        lm = LanguageModelList(LanguageModelList.grammar_from_path("asdasdas", lang_uri_or_path))
+        lm = LanguageModelList(
+            LanguageModelList.grammar_from_path("asdasdas", lang_uri_or_path)
+        )
     else:
         lm = LanguageModelList(LanguageModelList.from_uri(lang_uri_or_path))
     credentials = ("", "")
@@ -108,7 +112,9 @@ if __name__ == "__main__":
     if apath[-4:] == ".raw":
         wav = False
 
-    if (wav):
+    config["Media-Type"] = "audio/" + apath[-3:]
+
+    if wav:
         print("Recognizing audio with header")
 
     if len(pars):
@@ -127,12 +133,22 @@ if __name__ == "__main__":
         print("\nResults:")
         for k in res:
             print(k.alternatives)
-            if (k.age_scores.age != None):
-                print("Event {}: {} years old".format(k.age_scores.event, k.age_scores.age))
-            if (k.gender_scores.gender != None):
-                print("Event {}: {}".format(k.gender_scores.event, k.gender_scores.gender))
-            if (k.emotion_scores.emotion != None):
-                print("Emotion {}: {}".format(k.emotion_scores.event, k.emotion_scores.emotion))
+            if k.age_scores.age != None:
+                print(
+                    "Event {}: {} years old".format(
+                        k.age_scores.event, k.age_scores.age
+                    )
+                )
+            if k.gender_scores.gender != None:
+                print(
+                    "Event {}: {}".format(k.gender_scores.event, k.gender_scores.gender)
+                )
+            if k.emotion_scores.emotion != None:
+                print(
+                    "Emotion {}: {}".format(
+                        k.emotion_scores.event, k.emotion_scores.emotion
+                    )
+                )
     else:
         print("\nEmpty result!")
     asr.close()

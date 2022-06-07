@@ -24,11 +24,14 @@ import json
 VERSION = "ASR 2.4"
 
 
-def create_session_msg(user_agent=None):
+def create_session_msg(user_agent=None, channel_identifier=None):
     msg = "{} CREATE_SESSION\n".format(VERSION)
     if user_agent is not None:
         msg += "User-Agent: {}\n"
         msg = msg.format(user_agent)
+    if channel_identifier is not None:
+        msg += "Channel-Identifier: {}\n"
+        msg = msg.format(channel_identifier)
     msg = msg.encode()
     return msg
 
@@ -65,10 +68,12 @@ def start_recog_msg(uri_list, config):
     msg += langs.encode()
     return msg
 
+
 def start_input_timers_msg():
     msg = "{} START_INPUT_TIMERS\n".format(VERSION)
     msg = msg.encode()
     return msg
+
 
 def send_audio_msg(payload, last=False, audio_wav=True):
     """

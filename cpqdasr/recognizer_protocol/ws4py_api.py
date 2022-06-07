@@ -51,6 +51,7 @@ class ASRClient(WebSocketClient):
         cv_wait_cancel,
         listener=RecognitionListener(),
         user_agent=None,
+        channel_identifier=None,
         config=None,
         debug=False,
         protocols=None,
@@ -68,6 +69,7 @@ class ASRClient(WebSocketClient):
         assert isinstance(cv_wait_recog, Condition)
         assert isinstance(cv_wait_cancel, Condition)
         self._user_agent = user_agent
+        self._channel_identifier = channel_identifier
         self._listener = listener
         self._config = config
         self._logger = logging.getLogger("cpqdasr")
@@ -125,7 +127,7 @@ class ASRClient(WebSocketClient):
         self._status = "IDLE"
 
     def opened(self):
-        msg = create_session_msg(self._user_agent)
+        msg = create_session_msg(self._user_agent, self._channel_identifier)
         self.send(msg, binary=True)
         self._logger.debug(b"SEND: " + msg)
 
@@ -180,7 +182,7 @@ class ASRClient(WebSocketClient):
                         self._cv_send_audio.notify_all()
                 else:
                     self._logger.warning(
-                        "Error on start recognition: " "{}".format(msg.data)
+                        "Error on start recognition: " "{}".format(msg.data.decode())
                     )
                     self._abort()
                 return
@@ -257,7 +259,7 @@ class ASRClient(WebSocketClient):
                         event=b["age_scores"]["event"],
                         age=b["age_scores"]["age"],
                         p=b["age_scores"]["p"],
-                        confidence=b["age_scores"]["confidence"]
+                        confidence=b["age_scores"]["confidence"],
                     )
                 if "gender_scores" in b:
                     gender_scores = GenderResponse(
@@ -270,7 +272,7 @@ class ASRClient(WebSocketClient):
                         event=b["emotion_scores"]["event"],
                         p=b["emotion_scores"]["p"],
                         emotion=b["emotion_scores"]["emotion"],
-                        p_groups=b["emotion_scores"]["p_groups"]
+                        p_groups=b["emotion_scores"]["p_groups"],
                     )
                 else:
                     last_segment = True
