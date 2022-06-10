@@ -25,11 +25,16 @@ from sys import argv, exit
 import os
 import getopt
 
-config = {
+session_config = {
     "Infer-age-enabled": False,
     "Infer-gender-enabled": False,
     "Infer-emotion-enabled": False,
+    "license.manager.accountTag": "user_tag",
+}
+
+recog_config = {
     "Verify-Buffer-Utterance": False,
+    "Media-Type": None,
 }
 
 
@@ -87,6 +92,7 @@ if __name__ == "__main__":
             user = arg
             print("User {}".format(user))
         elif opt == "-v":
+            print(arg)
             v = arg.split("=")
             pars[v[0]] = v[1]
         elif opt == "-p":
@@ -112,21 +118,29 @@ if __name__ == "__main__":
     if apath[-4:] == ".raw":
         wav = False
 
-    config["Media-Type"] = "audio/" + apath[-3:]
+    recog_config["Media-Type"] = "audio/" + apath[-3:]
 
     if wav:
         print("Recognizing audio with header")
 
     if len(pars):
-        config = pars
+        for key, value in pars.items():
+            if key in session_config:
+                session_config[key] = value
+            elif key in recog_config:
+                recog_config[key] = value
+            else:
+                print("Invalid config parameter: ", key)
+                exit(2)
         print("Recognition parameters: {}".format(pars))
 
     asr = SpeechRecognizer(
         url,
         credentials=credentials,
         max_wait_seconds=600,
+        session_config=session_config,
     )
-    asr.recognize(FileAudioSource(apath), lm, wav=wav, config=config)
+    asr.recognize(FileAudioSource(apath), lm, wav=wav, config=recog_config)
     res = asr.wait_recognition_result()
 
     if res:
