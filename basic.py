@@ -30,6 +30,7 @@ session_config = {
     "Infer-gender-enabled": False,
     "Infer-emotion-enabled": False,
     "license.manager.accountTag": "user_tag",
+    "Channel-Identifier": None,
 }
 
 recog_config = {
@@ -92,7 +93,6 @@ if __name__ == "__main__":
             user = arg
             print("User {}".format(user))
         elif opt == "-v":
-            print(arg)
             v = arg.split("=")
             pars[v[0]] = v[1]
         elif opt == "-p":
@@ -138,6 +138,7 @@ if __name__ == "__main__":
         url,
         credentials=credentials,
         max_wait_seconds=600,
+        channel_identifier=session_config.pop("Channel-Identifier"),
         session_config=session_config,
     )
     asr.recognize(FileAudioSource(apath), lm, wav=wav, config=recog_config)
@@ -159,7 +160,7 @@ if __name__ == "__main__":
                 )
             if k.emotion_scores.emotion != None:
                 print(
-                    "Emotion {}: {}".format(
+                    "Event {}: {}".format(
                         k.emotion_scores.event, k.emotion_scores.emotion
                     )
                 )
