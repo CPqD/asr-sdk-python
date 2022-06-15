@@ -145,6 +145,8 @@ if __name__ == "__main__":
     res = asr.wait_recognition_result()
 
     if res:
+        print("\nResponse:")
+        print(res)
         print("\nResults:")
         for k in res:
             print(k.alternatives)
