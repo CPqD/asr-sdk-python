@@ -27,6 +27,7 @@ from cpqdasr import RecognitionListener
 from sys import argv
 from sys import stdout, stderr
 import os
+import getopt
 
 
 class PrinterListener(RecognitionListener):
@@ -34,6 +35,7 @@ class PrinterListener(RecognitionListener):
         self.max_char = 80
         self.last_final = 0
         self.print_str = ""
+        self.result_str = ""
 
     #    def on_partial_recognition(self, partial):
     #        pass
@@ -45,6 +47,7 @@ class PrinterListener(RecognitionListener):
     #        stdout.flush()
 
     def on_recognition_result(self, result):
+        self.result_str = "{}".format(result)
         self.print_str = self.print_str[: self.last_final]
         if "alternatives" in result and result["alternatives"]:
             alt = result["alternatives"][0]
@@ -68,48 +71,80 @@ class PrinterListener(RecognitionListener):
 
 def usage():
     print(
-        "Usage: {} <ws_url> <lang_uri> <wav_path> [ <user> <password> ]".format(argv[0])
+        "Usage: {} -j -w <ws_url> -l <lang_uri> [ -u <user> -p <password> ]\n"
+        "                -j: parse json result".format(argv[0])
     )
     print(
-        "   eg: {} ws://127.0.0.1:8025/asr-server/asr "
-        "builtin:grammar/samples/phone".format(argv[0])
+        "   eg: {} -w ws://127.0.0.1:8025/asr-server/asr "
+        "-l builtin:grammar/samples/phone".format(argv[0])
     )
     print(
-        "  eg2: {} wss://contact/cpqd/and/request/a/key/ "
-        "builtin:slm/general myusername mypassword".format(argv[0])
+        "  eg2: {} -w wss://contact/cpqd/and/request/a/key/ "
+        "-l builtin:slm/general myusername mypassword".format(argv[0])
     )
     exit()
 
 
 if __name__ == "__main__":
-    argc = len(argv)
-    if argc != 3 and argc != 5:
+    user = ""
+    password = ""
+    pars = {}
+    result_parse = False
+    try:
+        opts, args = getopt.getopt(argv[1:], "hjw:l:u:p:v:")
+    except getopt.GetoptError:
         usage()
 
-    url = argv[1]
-    if os.path.isfile(argv[2]):
+    for opt, arg in opts:
+        if opt == "-w":
+            url = arg
+            #print("URL= {}".format(url))
+        elif opt == "-l":
+            lang_uri_or_path = arg
+            #print("Language= {}".format(lang_uri_or_path))
+        elif opt == "-u":
+            user = arg
+            print("User {}".format(user))
+        elif opt == "-v":
+            v = arg.split("=")
+            pars[v[0]] = v[1]
+        elif opt == "-p":
+            password = arg
+            print("User {}".format(password))
+        elif opt == "-j":
+            result_parse = True
+        elif opt == "-h":
+            usage(0)
+
+    if os.path.isfile(lang_uri_or_path):
         lm = LanguageModelList(
-            LanguageModelList.grammar_from_path(os.path.basename(argv[2]), argv[2])
+            LanguageModelList.grammar_from_path(os.path.basename(lang_uri_or_path), lang_uri_or_path)
         )
     else:
-        lm = LanguageModelList(LanguageModelList.from_uri(argv[2]))
-    credentials = ("", "")
-    if argc == 5:
-        credentials = (argv[3], argv[4])
+        lm = LanguageModelList(LanguageModelList.from_uri(lang_uri_or_path))
+    credentials = (user, password)
 
+    listener=PrinterListener()
     asr = SpeechRecognizer(
         url,
         credentials=credentials,
-        listener=PrinterListener(),
+        listener=listener,
     )
 
     with MicAudioSource() as mic:
         try:
-            asr.recognize(mic, lm, wav=False)
+            asr.recognize(mic, lm, wav=False, config=pars)
             result = asr.wait_recognition_result()
             if result:
                 if result[0].result_code == "RECOGNIZED":
-                    print(result[0].alternatives[0]["text"])
+                    if (result_parse):
+                        out = listener.result_str.replace("'", "\"")
+                        out = out.replace("True", "\"True\"")
+                        out = out.replace("False", "\"False\"")
+                        cmd = "echo '{}' | jq --raw-output".format(out)
+                        os.system(cmd)
+                    else:
+                        print(result[0].alternatives[0]["text"])
                 else:
                     print(result[0].result_code)
         except KeyboardInterrupt:
