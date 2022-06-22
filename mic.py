@@ -30,9 +30,11 @@ import os
 import getopt
 
 
+
 class PrinterListener(RecognitionListener):
-    def __init__(self, max_char=80):
-        self.max_char = 80
+    def __init__(self, max_char=80, result_parse = False):
+        self.max_char = max_char
+        self.result_parse = result_parse
         self.last_final = 0
         self.print_str = ""
         self.result_str = ""
@@ -60,14 +62,15 @@ class PrinterListener(RecognitionListener):
                     while self.print_str[i] != " ":
                         i -= 1
                     clear_spaces = " " * (self.max_char - i)
-                    print(self.print_str[:i] + clear_spaces, end="\n")
+                    if not self.result_parse:
+                        print(self.print_str[:i] + clear_spaces, end="\n")
                     self.print_str = self.print_str[i:]
                     if self.print_str[0] == " ":
                         self.print_str = self.print_str[1:]
-                print(self.print_str, end="\r")
+                if not self.result_parse:
+                    print(self.print_str, end="\r")
                 self.last_final = len(self.print_str)
                 stdout.flush()
-
 
 def usage():
     print(
@@ -124,7 +127,7 @@ if __name__ == "__main__":
         lm = LanguageModelList(LanguageModelList.from_uri(lang_uri_or_path))
     credentials = (user, password)
 
-    listener=PrinterListener()
+    listener=PrinterListener(result_parse = result_parse)
     asr = SpeechRecognizer(
         url,
         credentials=credentials,
