@@ -62,8 +62,9 @@ class SpeechRecognizer:
         credentials=("", ""),
         alias="PySpeechRecognizer",
         log_stream=stderr,
-        recog_config=None,
+        session_config=None,
         user_agent=None,
+        channel_identifier=None,
         listener=RecognitionListener(),
         audio_sample_rate=8000,
         audio_encoding="pcm",
@@ -78,8 +79,9 @@ class SpeechRecognizer:
         self._serverUrl = server_url
         self._user = credentials[0]
         self._password = credentials[1]
-        self._session_config = recog_config
+        self._session_config = session_config
         self._user_agent = user_agent
+        self._channel_identifier = channel_identifier
         self._listener = listener
         self._audio_sample_rate = audio_sample_rate
         self._audio_encoding = audio_encoding
@@ -123,6 +125,7 @@ class SpeechRecognizer:
                 cv_wait_cancel=self._cv_wait_cancel,
                 listener=self._listener,
                 user_agent=self._user_agent,
+                channel_identifier=self._channel_identifier,
                 config=self._session_config,
                 headers=headers,
             )
