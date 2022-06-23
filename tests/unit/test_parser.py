@@ -29,13 +29,14 @@ payload = \
 "Content-Length: 68\r\n" \
 "Result: SUCCESS\r\n\r\n" \
 "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf"
-parser = WsParser(payload)
-parser.Parse()
-str = parser.Dump()
-assert str == payload
-assert "RESPONSE" == parser.get_command()
-assert "1.0" == parser.get_version()
-assert "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf" == parser.get_body()
+def test_parser_1():
+  parser = WsParser(payload)
+  parser.Parse()
+  str = parser.Dump()
+  assert str == payload
+  assert "RESPONSE" == parser.get_command()
+  assert "1.0" == parser.get_version()
+  assert "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf" == parser.get_body()
 
 payload2 = \
 "ASR 1.0 RESPONSE\r\n" \
@@ -45,15 +46,15 @@ payload2 = \
 "Content-Length:68\r\n" \
 "Result:SUCCESS\r\n\r\n" \
 "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf"
-
-parser.set_payload(payload2)
-parser.Parse()
-str = parser.Dump()
-#print(str)
-assert str == payload
-assert "RESPONSE" == parser.get_command()
-assert "1.0" == parser.get_version()
-assert "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf" == parser.get_body()
+def test_parser_2():
+  parser = WsParser(payload)
+  parser.set_payload(payload2)
+  parser.Parse()
+  str = parser.Dump()
+  assert str == payload
+  assert "RESPONSE" == parser.get_command()
+  assert "1.0" == parser.get_version()
+  assert "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf" == parser.get_body()
 
 payload3 = \
 "ASR 1.0 RESPONSE\r\n\r\n" \
@@ -63,14 +64,15 @@ payload3 = \
 "Content-Length:68\r\n" \
 "Result:SUCCESS\r\n" \
 "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf"
-
-parser.set_payload(payload3)
-parser.Parse()
-str = parser.Dump()
-assert str == payload
-assert "RESPONSE" == parser.get_command()
-assert "1.0" == parser.get_version()
-assert "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf" == parser.get_body()
+def test_parser_3():
+  parser = WsParser(payload)
+  parser.set_payload(payload3)
+  parser.Parse()
+  str = parser.Dump()
+  assert str == payload
+  assert "RESPONSE" == parser.get_command()
+  assert "1.0" == parser.get_version()
+  assert "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf" == parser.get_body()
 
 payload4 = \
 "ASR 1.0 RESPONSE\r\n\r\n" \
@@ -89,18 +91,19 @@ p_ref4 = \
 "Content-Length: 70\r\n" \
 "Result: SUCCESS\r\n\r\n" \
 "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf\r\n"
-parser.set_payload(payload4)
-parser.Parse()
-str = parser.Dump()
-#print(str)
-#print(len(str))
-#print(p_ref4)
-#print(len(p_ref4))
-
-assert str == p_ref4
-assert "RESPONSE" == parser.get_command()
-assert "1.0" == parser.get_version()
-assert "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf\r\n" == parser.get_body()
+def test_parser_4():
+  parser = WsParser(payload)
+  parser.set_payload(payload4)
+  parser.Parse()
+  str = parser.Dump()
+  #print(str)
+  #print(len(str))
+  #print(p_ref4)
+  #print(len(p_ref4))
+  assert str == p_ref4
+  assert "RESPONSE" == parser.get_command()
+  assert "1.0" == parser.get_version()
+  assert "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf\r\n" == parser.get_body()
 
 payload5 = \
 "Handle:201604081523970032\r\n" \
@@ -118,10 +121,12 @@ p_ref5 = \
 "Status: IDLE\r\n" \
 "Content-Length: 68\r\n\r\n" \
 "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf"
-parser.set_payload(payload5)
-parser.Parse()
-str = parser.Dump()
-assert str == p_ref5
-assert "RESPONSE" == parser.get_command()
-assert "1.0" == parser.get_version()
-assert "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf" == parser.get_body()
+def test_parser_5():
+  parser = WsParser(payload)
+  parser.set_payload(payload5)
+  parser.Parse()
+  str = parser.Dump()
+  assert str == p_ref5
+  assert "RESPONSE" == parser.get_command()
+  assert "1.0" == parser.get_version()
+  assert "body\nsdfsidkf sdfsldk sldkfslfsidlfsidksldijfsdifldfk sodfjsdlfkjsdf" == parser.get_body()
