@@ -19,7 +19,7 @@
 ASR Server WebSocket parser test
 """
 
-from ws_parser import WsParser
+from cpqdasr import WsParser
 
 payload = \
 "ASR 1.0 RESPONSE\r\n" \
