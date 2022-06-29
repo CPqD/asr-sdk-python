@@ -116,7 +116,7 @@ def parse_response(msg):
     header, and the second one to the JSON body.
     """
     msg = msg.data
-    parser = WsParser(msg.decode("utf-8"))
+    parser = WsParser(msg)
     parser.Parse()
     r = parser.get_command()
     h = parser.get_params()

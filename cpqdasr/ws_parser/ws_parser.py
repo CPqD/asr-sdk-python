@@ -38,7 +38,11 @@ class WsParser():
 
   def Parse(self):
     #print(self.payload)
-    lines = self.payload.split("\n")
+    try:
+        payload = self.payload.decode("utf-8")
+    except:
+        payload = self.payload
+    lines = payload.split("\n")
     #print(lines)
     for l in lines:
       if len(l):
@@ -48,7 +52,7 @@ class WsParser():
       #print("Length: {}".format(length))
       try:
         self.length = int(length)
-        self.body = self.payload[-self.length:]
+        self.body = self.payload[len(self.payload)-self.length:]
       except:
         print("Exception")
         pass
