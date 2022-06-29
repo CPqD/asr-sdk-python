@@ -19,6 +19,7 @@
 ASR Server WebSocket API message builders/parsers
 """
 import json
+from cpqdasr.ws_parser import WsParser
 
 
 VERSION = "ASR 2.4"
@@ -115,20 +116,16 @@ def parse_response(msg):
     header, and the second one to the JSON body.
     """
     msg = msg.data
-    msg = msg.replace(b"\r", b"")
-    msg = msg.split(b"\n\n")
-    header = msg[0].decode().split("\n")
-    h = {}
-    r = header[0].split()[-1]
-    for l in header[1:]:
-        split = [x.strip() for x in l.split(":")]
-        key = split[0]
-        val = ":".join(split[1:])
-        h[key] = val
+    parser = WsParser(msg)
+    parser.Parse()
+    r = parser.get_command()
+    h = parser.get_params()
+    body = parser.get_body()
+    b = {}
+    try:
+      if body:
+          b = json.loads(body)
+    except:
+      pass
 
-    body = b"\n\n".join(msg[1:])
-    if body:
-        b = json.loads(body.decode())
-    else:
-        b = {}
     return r, h, b

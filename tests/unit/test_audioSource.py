@@ -47,7 +47,7 @@ def test_equivalence_file_buffer():
     # Buffer
     asr = SpeechRecognizer(url, **asr_kwargs)
     source = BufferAudioSource()
-    asr.recognize(source, LanguageModelList(slm))
+    asr.recognize(source, LanguageModelList(slm), wav=False)
     sig, rate = sf.read(phone_wav)
     source.write((sig * 2 ** 15).astype("int16").tobytes())
     source.finish()
@@ -61,7 +61,7 @@ def test_empty_buffer():
     # Buffer
     asr = SpeechRecognizer(url, **asr_kwargs)
     source = BufferAudioSource()
-    asr.recognize(source, LanguageModelList(slm))
+    asr.recognize(source, LanguageModelList(slm), wav=False)
     source.finish()
     res = asr.wait_recognition_result()
     assert len(res[0].alternatives) == 0

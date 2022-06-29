@@ -7,3 +7,4 @@ from .recognizer import (
 )
 from .recognizer import BufferAudioSource, FileAudioSource, MicAudioSource
 from .recognizer import RecognitionListener
+from .ws_parser import WsParser
