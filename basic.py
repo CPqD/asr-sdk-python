@@ -36,6 +36,7 @@ session_config = {
 recog_config = {
     "Verify-Buffer-Utterance": False,
     "Media-Type": None,
+    "loggingTag": None,
 }
 
 
