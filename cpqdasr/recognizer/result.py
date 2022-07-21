@@ -28,15 +28,19 @@ class PartialRecognitionResult:
         self.speechSegmentIndex = speech_segment_index
         self.text = text
 
+    def __repr__(self) -> str:
+        return str(vars(self))
+
 
 class AgeResponse:
-    def __init__(
-            self, event=None, age=None, confidence=None, p=None
-    ):
+    def __init__(self, event=None, age=None, confidence=None, p=None):
         self.age = age
         self.event = event
         self.confidence = confidence
         self.p = p
+
+    def __repr__(self) -> str:
+        return str(vars(self))
 
 
 class GenderResponse:
@@ -44,6 +48,9 @@ class GenderResponse:
         self.event = event
         self.gender = gender
         self.p = p
+
+    def __repr__(self) -> str:
+        return str(vars(self))
 
 
 class EmotionResponse:
@@ -53,20 +60,22 @@ class EmotionResponse:
         self.p = p
         self.p_groups = p_groups
 
+    def __repr__(self) -> str:
+        return str(vars(self))
 
 
 class RecognitionResult:
     def __init__(
-            self,
-            result_code,
-            speech_segment_index,
-            last_speech_segment,
-            sentence_start_time_milliseconds,
-            sentence_end_time_milliseconds,
-            alternatives,
-            age_scores=None,
-            gender_scores=None,
-            emotion_scores=None,
+        self,
+        result_code,
+        speech_segment_index,
+        last_speech_segment,
+        sentence_start_time_milliseconds,
+        sentence_end_time_milliseconds,
+        alternatives,
+        age_scores=None,
+        gender_scores=None,
+        emotion_scores=None,
     ):
         assert type(result_code) is str
         assert type(speech_segment_index) is int
@@ -83,3 +92,6 @@ class RecognitionResult:
         self.age_scores = age_scores
         self.gender_scores = gender_scores
         self.emotion_scores = emotion_scores
+
+    def __repr__(self) -> str:
+        return str(vars(self))
