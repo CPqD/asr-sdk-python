@@ -66,6 +66,7 @@ class ASRClient(WebSocketClient):
         self._config = config
         self._logger = logging.getLogger("cpqdasr")
         self._status = "DISCONNECTED"
+        self._error_msg = ""
         self._cv_define_grammar = cv_define_grammar
         self._time_define_grammar = 0
         self._cv_create_session = cv_create_session
@@ -158,9 +159,8 @@ class ASRClient(WebSocketClient):
                     with self._cv_define_grammar:
                         self._cv_define_grammar.notify_all()
                 else:
-                    self._logger.warning(
-                        "Error on defining grammar: " "{}".format(msg.data)
-                    )
+                    self._error_msg = "Error on defining grammar: " "{}".format(msg.data)
+                    self._logger.warning(self._error_msg)
                     self._abort()
                 return
             if h["Method"] == "START_RECOGNITION":
@@ -170,9 +170,8 @@ class ASRClient(WebSocketClient):
                     with self._cv_send_audio:
                         self._cv_send_audio.notify_all()
                 else:
-                    self._logger.warning(
-                        "Error on start recognition: " "{}".format(msg.data)
-                    )
+                    self._error_msg = "Error on start recognition: " "{}".format(msg.data)
+                    self._logger.warning(self._error_msg)
                     self._abort()
                 return
 

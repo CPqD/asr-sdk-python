@@ -19,7 +19,7 @@ tests_require = [
 
 setup(
     name="cpqdasr",
-    version="1.0.0",
+    version="1.2.0",
     description="CPqD ASR SDK implementation using websockets in Python",
     long_description=readme,
     install_requires=install_requires,
