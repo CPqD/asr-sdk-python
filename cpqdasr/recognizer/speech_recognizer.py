@@ -181,7 +181,7 @@ class SpeechRecognizer:
             self._cv_wait_recog.wait(self._max_wait_seconds)
             if self._ws.status == "ABORTED":
                 self._ws.recognition_list = []
-                return []
+                raise RecognitionException("ABORTED", self._ws._error_msg)
             elif self._ws.status not in [
                 "RECOGNIZED",
                 "NO_MATCH",
