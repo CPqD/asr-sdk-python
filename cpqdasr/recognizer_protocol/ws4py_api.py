@@ -75,6 +75,8 @@ class ASRClient(WebSocketClient):
         self._logger = logging.getLogger("cpqdasr")
         self._status = "DISCONNECTED"
         self._error_msg = ""
+        self._close_code = None
+        self._close_reason = None
         self._cv_define_grammar = cv_define_grammar
         self._time_define_grammar = 0
         self._cv_create_session = cv_create_session
@@ -132,8 +134,18 @@ class ASRClient(WebSocketClient):
         self.send(msg, binary=True)
         self._logger.debug(b"SEND: " + msg)
 
+    @property
+    def close_code(self):
+        return self._close_code
+
+    @property
+    def close_reason(self):
+        return self._close_reason
+
     def closed(self, code, reason=None):
         self._status = "DISCONNECTED"
+        self._close_code = code
+        self._close_reason = reason
         self._error_msg = "ASR WS closed down {}, {}".format(code, reason)
         self._logger.info(self._error_msg)
         self._abort()

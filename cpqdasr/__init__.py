@@ -2,6 +2,7 @@
 from .recognizer import (
     SpeechRecognizer,
     RecognitionException,
+    AbnormalWsCloseException,
     LanguageModelList,
     PartialRecognitionResult,
 )

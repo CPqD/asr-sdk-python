@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-from .speech_recognizer import SpeechRecognizer, RecognitionException
+from .speech_recognizer import (
+    SpeechRecognizer,
+    RecognitionException,
+    AbnormalWsCloseException,
+)
 from .language_model_list import LanguageModelList
 from .listener import RecognitionListener
 from .result import RecognitionResult, PartialRecognitionResult
