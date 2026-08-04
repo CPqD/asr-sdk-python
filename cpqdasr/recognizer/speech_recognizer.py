@@ -45,6 +45,17 @@ class RecognitionException(Exception):
         self.code = c
 
 
+class AbnormalWsCloseException(RecognitionException):
+    retryable = True
+
+    def __init__(self, close_code, close_reason, message=None):
+        if message is None:
+            message = "ASR WS closed down {}, {}".format(close_code, close_reason)
+        super(AbnormalWsCloseException, self).__init__("ABORTED", message)
+        self.close_code = close_code
+        self.close_reason = close_reason
+
+
 class SpeechRecognizer:
     """
     Class which recognizes speech and returns structured results.
@@ -181,7 +192,13 @@ class SpeechRecognizer:
             self._cv_wait_recog.wait(self._max_wait_seconds)
             if self._ws.status == "ABORTED":
                 self._ws.recognition_list = []
-                return []
+                close_code = getattr(self._ws, "close_code", None)
+                close_reason = getattr(self._ws, "close_reason", None)
+                if str(close_code) == "1006":
+                    raise AbnormalWsCloseException(
+                        close_code, close_reason, self._ws._error_msg
+                    )
+                raise RecognitionException("ABORTED", self._ws._error_msg)
             elif self._ws.status not in [
                 "RECOGNIZED",
                 "NO_MATCH",

@@ -74,6 +74,9 @@ class ASRClient(WebSocketClient):
         self._config = config
         self._logger = logging.getLogger("cpqdasr")
         self._status = "DISCONNECTED"
+        self._error_msg = ""
+        self._close_code = None
+        self._close_reason = None
         self._cv_define_grammar = cv_define_grammar
         self._time_define_grammar = 0
         self._cv_create_session = cv_create_session
@@ -131,9 +134,20 @@ class ASRClient(WebSocketClient):
         self.send(msg, binary=True)
         self._logger.debug(b"SEND: " + msg)
 
+    @property
+    def close_code(self):
+        return self._close_code
+
+    @property
+    def close_reason(self):
+        return self._close_reason
+
     def closed(self, code, reason=None):
         self._status = "DISCONNECTED"
-        self._logger.info("ASR WS closed down {}, {}".format(code, reason))
+        self._close_code = code
+        self._close_reason = reason
+        self._error_msg = "ASR WS closed down {}, {}".format(code, reason)
+        self._logger.info(self._error_msg)
         self._abort()
 
     def received_message(self, msg):
@@ -169,9 +183,8 @@ class ASRClient(WebSocketClient):
                     with self._cv_define_grammar:
                         self._cv_define_grammar.notify_all()
                 else:
-                    self._logger.warning(
-                        "Error on defining grammar: " "{}".format(msg.data)
-                    )
+                    self._error_msg = "Error on defining grammar: " "{}".format(msg.data)
+                    self._logger.warning(self._error_msg)
                     self._abort()
                 return
             if h["Method"] == "START_RECOGNITION":
@@ -181,9 +194,10 @@ class ASRClient(WebSocketClient):
                     with self._cv_send_audio:
                         self._cv_send_audio.notify_all()
                 else:
-                    self._logger.warning(
-                        "Error on start recognition: " "{}".format(msg.data.decode())
+                    self._error_msg = "Error on start recognition: " "{}".format(
+                        msg.data.decode()
                     )
+                    self._logger.warning(self._error_msg)
                     self._abort()
                 return
 
@@ -227,9 +241,12 @@ class ASRClient(WebSocketClient):
             # If an error occurs, do not halt the client. Instead, log
             # the error
             elif "Error-Code" in h:
-                self._logger.warning(
-                    "Non-fatal error in API call: Code " "{}".format(h["Error-Code"])
+                self._error_msg = (
+                    "Non-fatal error in API call: Code {}. Response: {}".format(
+                        h["Error-Code"], msg.data
+                    )
                 )
+                self._logger.warning(self._error_msg)
                 self._abort()
 
             elif h["Method"] == "CANCEL_RECOGNITION":
